@@ -1,6 +1,6 @@
 /**
  * Navigation.js
- * Sistema de navegaci�n entre pesta�as
+ * Sistema de navegacion entre pestanas
  */
 
 const Navigation = {
@@ -20,21 +20,24 @@ const Navigation = {
             });
         });
         this.changeTab(Constants.TABS.BASE);
-        console.log('[Navigation] Navegaci�n iniciada');
+        console.log('[Navigation] Navegacion iniciada');
     },
 
     changeTab(tab) {
         if (!Object.values(Constants.TABS).includes(tab)) {
-            console.warn(`[Navigation] Pesta�a inv�lida: ${tab}`);
+            console.warn(`[Navigation] Pestana invalida: ${tab}`);
             return;
         }
         this.currentTab = tab;
         this.navButtons.forEach(btn => {
-            btn.classList.add('active', btn.dataset.tab === tab ? '' : '');
-            if (btn.dataset.tab !== tab) btn.classList.remove('active');
+            if (btn.dataset.tab === tab) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
         });
         EventBus.emit(Constants.EVENTS.NAVIGATION.CHANGE_TAB, { tab });
-        console.log(`[Navigation] Cambiado a pesta�a: ${tab}`);
+        console.log(`[Navigation] Cambiado a pestana: ${tab}`);
     },
 
     getCurrentTab() { return this.currentTab; }
