@@ -3,7 +3,7 @@ export function renderNavigation(nav, onNavigate) {
 
   const items = [
     { id: "home", label: "Inicio" },
-    { id: "archive", label: "Archivo Galá¡¡ctico" },
+    { id: "archive", label: "Archivo Galactico" },
   ];
 
   items.forEach((item) => {

@@ -6,7 +6,7 @@ const CATEGORIES = [
   { id: "naves", label: "Naves" },
   { id: "planetas", label: "Planetas" },
   { id: "armas", label: "Armas" },
-  { id: "vehiculos", label: "Vehí¡¡culos" },
+  { id: "vehiculos", label: "Vehiculos" },
   { id: "droides", label: "Droides" },
   { id: "criaturas", label: "Criaturas" },
 ];
