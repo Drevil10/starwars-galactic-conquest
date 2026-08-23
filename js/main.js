@@ -6,12 +6,12 @@ const state = {
   research: 10,
   archiveUnlocked: true,
   archiveEntries: [
-    { id: 'luke', type: 'personaje', title: 'Luke Skywalker', description: 'Jedi legendario que restauro el equilibrio en la Fuerza.', image: 'assets/luke.svg' },
-    { id: 'vader', type: 'personaje', title: 'Darth Vader', description: 'Senor Oscuro de los Sith y comandante supremo del Imperio.', image: 'assets/vader.svg' },
-    { id: 'tato', type: 'planeta', title: 'Tatooine', description: 'Planeta desertico en las Regiones Exteriores, hogar de Anakin y Luke.', image: 'assets/tatooine.svg' },
-    { id: 'xwing', type: 'tecnologia', title: 'Caza X-wing', description: 'Nave de superioridad estelar usada por la Alianza Rebelde.', image: 'assets/xwing.svg' },
-    { id: 'deathstar', type: 'tecnologia', title: 'Estrella de la Muerte', description: 'Superarma orbital capaz de destruir planetas enteros.', image: 'assets/deathstar.svg' },
-    { id: 'yavin', type: 'evento', title: 'Batalla de Yavin', description: 'Asalto rebelde que destruyo la primera Estrella de la Muerte.', image: 'assets/yavin.svg' }
+    { id: 'luke', type: 'personaje', title: 'Luke Skywalker', description: 'Jedi legendario que restauro el equilibrio en la Fuerza.', image: 'assets/characters/iconic/luke-skywalker.svg' },
+    { id: 'vader', type: 'personaje', title: 'Darth Vader', description: 'Senor Oscuro de los Sith y comandante supremo del Imperio.', image: 'assets/characters/iconic/darth-vader.svg' },
+    { id: 'tato', type: 'planeta', title: 'Tatooine', description: 'Planeta desertico en las Regiones Exteriores, hogar de Anakin y Luke.', image: 'assets/locations/tatooine.svg' },
+    { id: 'xwing', type: 'tecnologia', title: 'Caza X-wing', description: 'Nave de superioridad estelar usada por la Alianza Rebelde.', image: 'assets/ships/x-wing.svg' },
+    { id: 'deathstar', type: 'tecnologia', title: 'Estrella de la Muerte', description: 'Superarma orbital capaz de destruir planetas enteros.', image: 'assets/locations/death-star.svg' },
+    { id: 'yavin', type: 'evento', title: 'Batalla de Yavin', description: 'Asalto rebelde que destruyo la primera Estrella de la Muerte.', image: 'assets/locations/death-star-ii.svg' }
   ]
 };
 
