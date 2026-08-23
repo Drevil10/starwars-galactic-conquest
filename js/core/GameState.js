@@ -99,7 +99,7 @@ const GameState = {
     deserialize(data) {
         if (!data) return false;
         if (data.gameInfo.saveVersion !== this.gameInfo.saveVersion) {
-            console.warn('[GameState] Versi�n incompatible');
+            console.warn('[GameState] Version incompatible');
             return false;
         }
         this.gameInfo = data.gameInfo;

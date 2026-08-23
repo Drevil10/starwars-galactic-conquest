@@ -1,6 +1,6 @@
 /**
  * Constants.js
- * Configuraci�n global y valores constantes del juego
+ * Configuracion global y valores constantes del juego
  */
 
 const Constants = {
@@ -19,20 +19,20 @@ const Constants = {
 
     RESOURCE_CONFIG: {
         credits: {
-            name: 'Cr�ditos',
-            icon: '₡',
+            name: 'Creditos',
+            icon: 'C',
             color: '#FFE81F',
             maxCapacity: 10000
         },
         materials: {
             name: 'Materiales',
-            icon: '◆',
+            icon: 'M',
             color: '#4CAF50',
             maxCapacity: 5000
         },
         energy: {
-            name: 'Energ�a',
-            icon: '⚡',
+            name: 'Energia',
+            icon: 'E',
             color: '#2196F3',
             maxCapacity: 3000
         }
@@ -49,7 +49,7 @@ const Constants = {
 
     FACTION_CONFIG: {
         republic: {
-            name: 'Rep�blica Gal�ctica',
+            name: 'Republica Galactica',
             color: '#1E3A8A',
             icon: '🔵'
         },
@@ -59,7 +59,7 @@ const Constants = {
             icon: '🔴'
         },
         empire: {
-            name: 'Imperio Gal�ctico',
+            name: 'Imperio Galactico',
             color: '#1F2937',
             icon: '⚫'
         },

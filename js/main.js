@@ -5,7 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('%c⭐ Star Wars: Galactic Conquest ⭐', 'color: #FFE81F; font-size: 20px; font-weight: bold;');
-    console.log(`%cVersi�n ${Constants.GAME.VERSION}`, 'color: #8B8B8B; font-size: 12px;');
+    console.log(`%cVersion ${Constants.GAME.VERSION}`, 'color: #8B8B8B; font-size: 12px;');
     console.log('---');
     
     try {

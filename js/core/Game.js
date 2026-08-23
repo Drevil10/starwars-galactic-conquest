@@ -20,7 +20,7 @@ const Game = {
         window.addEventListener('resize', () => this.resizeCanvas());
         this.initializeSystems();
         this.setupEventListeners();
-        console.log('[Game] Inicializaci�n completada');
+        console.log('[Game] Inicializacion completada');
     },
 
     initializeSystems() {
