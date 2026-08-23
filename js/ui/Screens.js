@@ -1,53 +1,70 @@
 // js/ui/Screens.js
-// Sistema de gestión de pantallas
+// Gestiona las pantallas principales y garantiza el acceso táctil al inicio.
 
 class ScreensClass {
     constructor() {
         this.currentScreen = null;
         this.screens = {};
+        this.isTransitioning = false;
+        this.startHandler = null;
     }
 
     init() {
-        // Registrar pantallas
         this.screens = {
             start: document.getElementById('start-screen'),
             game: document.getElementById('game-screen')
         };
 
-        // Botón de inicio
-        const startBtn = document.getElementById('start-btn');
-        if (startBtn) {
-            startBtn.addEventListener('click', () => this.showScreen('game'));
+        const startButton = document.getElementById('start-btn');
+        if (!startButton) {
+            console.error('Screens: No se encontró #start-btn');
+            return false;
         }
 
-        console.log('Screens: Inicializadas');
+        this.startHandler = () => this.startAdventure();
+        startButton.addEventListener('click', this.startHandler);
+        startButton.addEventListener('pointerup', (event) => {
+            if (event.pointerType === 'touch') this.startAdventure();
+        });
+
+        this.showScreen('start');
+        return true;
+    }
+
+    startAdventure() {
+        if (this.isTransitioning || this.currentScreen === 'game') return;
+        this.isTransitioning = true;
+        this.showScreen('game');
+
+        requestAnimationFrame(() => {
+            if (typeof Game !== 'undefined' && Game.resizeCanvas) {
+                Game.resizeCanvas();
+            }
+            this.isTransitioning = false;
+        });
     }
 
     showScreen(screenName) {
-        if (!this.screens[screenName]) {
+        const nextScreen = this.screens[screenName];
+        if (!nextScreen) {
             console.warn('Screens: Pantalla no encontrada', screenName);
             return;
         }
 
-        // Ocultar todas
-        Object.values(this.screens).forEach(screen => {
+        Object.values(this.screens).forEach((screen) => {
             if (screen) screen.classList.remove('active');
         });
-
-        // Mostrar la deseada
-        this.screens[screenName].classList.add('active');
+        nextScreen.classList.add('active');
         this.currentScreen = screenName;
 
-        // Actualizar estado del juego
-        if (screenName === 'game') {
-            GameState.setGameState('playing');
-            GameState.setScreen('base');
-        } else {
-            GameState.setGameState('menu');
+        if (typeof GameState !== 'undefined') {
+            GameState.setGameState(screenName === 'game' ? 'playing' : 'menu');
+            if (screenName === 'game') GameState.setScreen('base');
         }
 
-        EventBus.emit('screen:changed', { screen: screenName });
-        console.log('Screens: Mostrando', screenName);
+        if (typeof EventBus !== 'undefined') {
+            EventBus.emit('screen:changed', { screen: screenName });
+        }
     }
 
     getCurrentScreen() {
@@ -55,5 +72,4 @@ class ScreensClass {
     }
 }
 
-// Exportar instancia global
 window.Screens = new ScreensClass();
