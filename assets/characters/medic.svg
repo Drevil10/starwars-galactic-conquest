@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Médico">
+  <rect width="128" height="128" rx="24" fill="#081f1b"/>
+  <path d="M17 91c10-25 26-37 47-37s37 12 47 37v19H17V91Z" fill="#185443"/>
+  <path d="M39 57c0-20 10-33 25-33s25 13 25 33v17c0 16-10 28-25 28S39 90 39 74V57Z" fill="#c68463"/>
+  <path d="M36 55c2-22 12-35 28-35 17 0 28 12 30 35l-15-8H49l-13 8Z" fill="#263c36"/>
+  <path d="m29 89 18-18 17 10 17-10 18 18-7 19H36l-7-19Z" fill="#e3ece9"/>
+  <path d="M64 81v27M48 90l16 8 16-8" fill="none" stroke="#48d7a5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M58 92h12M64 86v12" stroke="#e94d63" stroke-width="4" stroke-linecap="round"/>
+  <path d="M53 64h7M69 64h7" stroke="#182c29" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="64" cy="64" r="54" fill="none" stroke="#63e0b0" stroke-width="3" opacity=".72"/>
+</svg>

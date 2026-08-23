@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Ingeniero">
+  <rect width="128" height="128" rx="24" fill="#211b0b"/>
+  <path d="M16 92c10-25 27-38 48-38s38 13 48 38v18H16V92Z" fill="#5a4d1c"/>
+  <path d="M39 58c0-21 10-34 25-34s25 13 25 34v16c0 17-10 28-25 28S39 91 39 74V58Z" fill="#ce9269"/>
+  <path d="M36 55c1-22 11-35 28-35 18 0 28 12 30 35l-15-8H49l-13 8Z" fill="#554925"/>
+  <path d="M30 57h68v14H30z" fill="#d3a82d"/>
+  <path d="M35 59h58" stroke="#fff0a1" stroke-width="4" stroke-linecap="round"/>
+  <path d="m29 89 18-18 17 10 17-10 18 18-7 19H36l-7-19Z" fill="#c99d24"/>
+  <path d="M64 82v26M48 90l16 8 16-8" fill="none" stroke="#fff0a1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m88 87 10 10M98 87 88 97" stroke="#fff0a1" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="64" cy="64" r="54" fill="none" stroke="#ffd45d" stroke-width="3" opacity=".7"/>
+</svg>

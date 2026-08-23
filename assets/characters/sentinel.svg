@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Centinela">
+  <rect width="128" height="128" rx="24" fill="#260b17"/>
+  <path d="M16 92c10-25 27-38 48-38s38 13 48 38v18H16V92Z" fill="#5d1930"/>
+  <path d="M39 58c0-21 10-34 25-34s25 13 25 34v16c0 17-10 28-25 28S39 91 39 74V58Z" fill="#b9755c"/>
+  <path d="M35 59c1-25 12-39 29-39 16 0 28 12 30 36l-14-9H48l-13 12Z" fill="#241623"/>
+  <path d="M31 60h66l-4 20H35l-4-20Z" fill="#3a2634"/>
+  <path d="M39 65h50" stroke="#ff536d" stroke-width="4" stroke-linecap="round"/>
+  <path d="m28 89 19-18 17 10 17-10 19 18-8 19H36l-8-19Z" fill="#9b2647"/>
+  <path d="M64 82v26M48 91l16 7 16-7" fill="none" stroke="#ff8b9e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M64 49v21" stroke="#ff536d" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="64" cy="64" r="54" fill="none" stroke="#ff627c" stroke-width="3" opacity=".72"/>
+</svg>
