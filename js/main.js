@@ -6,12 +6,12 @@ const state = {
   research: 10,
   archiveUnlocked: true,
   archiveEntries: [
-    { id: 'luke', type: 'personaje', title: 'Luke Skywalker', description: 'Jedi legendario que restauró·¡¡el equilibrio en la Fuerza.', image: 'assets/luke.svg' },
-    { id: 'vader', type: 'personaje', title: 'Darth Vader', description: 'Señ¡¡¡or Oscuro de los Sith y comandante supremo del Imperio.', image: 'assets/vader.svg' },
-    { id: 'tato', type: 'planeta', title: 'Tatooine', description: 'Planeta desé¡¡rtico en las Regiones Exteriores, hogar de Anakin y Luke.', image: 'assets/tatooine.svg' },
+    { id: 'luke', type: 'personaje', title: 'Luke Skywalker', description: 'Jedi legendario que restauro el equilibrio en la Fuerza.', image: 'assets/luke.svg' },
+    { id: 'vader', type: 'personaje', title: 'Darth Vader', description: 'Senor Oscuro de los Sith y comandante supremo del Imperio.', image: 'assets/vader.svg' },
+    { id: 'tato', type: 'planeta', title: 'Tatooine', description: 'Planeta desertico en las Regiones Exteriores, hogar de Anakin y Luke.', image: 'assets/tatooine.svg' },
     { id: 'xwing', type: 'tecnologia', title: 'Caza X-wing', description: 'Nave de superioridad estelar usada por la Alianza Rebelde.', image: 'assets/xwing.svg' },
     { id: 'deathstar', type: 'tecnologia', title: 'Estrella de la Muerte', description: 'Superarma orbital capaz de destruir planetas enteros.', image: 'assets/deathstar.svg' },
-    { id: 'yavin', type: 'evento', title: 'Batalla de Yavin', description: 'Asalto rebelde que destruyó·¡¡la primera Estrella de la Muerte.', image: 'assets/yavin.svg' }
+    { id: 'yavin', type: 'evento', title: 'Batalla de Yavin', description: 'Asalto rebelde que destruyo la primera Estrella de la Muerte.', image: 'assets/yavin.svg' }
   ]
 };
 
@@ -51,7 +51,7 @@ function showScreen(screen) {
   screen.classList.add('active');
 }
 
-// Navegaciñ¡¡¡n inferior
+// Navegacion inferior
 navBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     navBtns.forEach(b => b.classList.remove('active'));
