@@ -38,6 +38,28 @@
 
       <main id="game-area">
         <canvas id="game-canvas"></canvas>
+        <div id="archive-screen" class="canvas-overlay" style="display:none;">
+          <div id="archive-list" class="archive-panel">
+            <h2 class="archive-title">Archivo</h2>
+            <input id="archive-search" class="archive-search" type="search" placeholder="Buscar en el Archivo" />
+            <div id="archive-filters" class="archive-filters">
+              <button class="archive-filter active" data-type="all">Todos</button>
+              <button class="archive-filter" data-type="personaje">Personajes</button>
+              <button class="archive-filter" data-type="tecnologia">Tecnologia</button>
+              <button class="archive-filter" data-type="planeta">Planetas</button>
+              <button class="archive-filter" data-type="evento">Eventos</button>
+            </div>
+            <div id="archive-grid" class="archive-grid"></div>
+            <div id="archive-empty" class="archive-empty" style="display:none;">No hay entradas en el Archivo aun.</div>
+          </div>
+          <div id="archive-detail" class="archive-panel" style="display:none;">
+            <img id="detail-image" class="archive-detail-image" alt="" />
+            <h2 id="detail-title" class="archive-detail-title"></h2>
+            <div id="detail-type" class="archive-detail-type"></div>
+            <p id="detail-description" class="archive-detail-description"></p>
+            <button id="archive-back" class="action-btn archive-back-button">Volver</button>
+          </div>
+        </div>
       </main>
 
       <nav id="bottom-nav">
