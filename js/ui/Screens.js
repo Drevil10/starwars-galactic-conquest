@@ -13,7 +13,7 @@ export function registerScreens(app) {
   archiveSection.innerHTML = `
     <section class="archive-screen">
       <header class="archive-header">
-        <h2 class="archive-title">Archivo Galá¡¡ctico</h2>
+        <h2 class="archive-title">Archivo Galactico</h2>
         <div class="archive-controls">
           <label class="archive-search">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
