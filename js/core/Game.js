@@ -1,149 +1,175 @@
-/**
- * Game.js
- * Orquestador principal del juego
- */
+// js/core/Game.js
+// Módulo principal del juego - maneja el canvas, resize y loop principal
 
-const Game = {
-    isRunning: false,
-    isPaused: false,
-    lastTime: 0,
-    accumulator: 0,
-    systems: {},
-    canvas: null,
-    ctx: null,
+class Game {
+    constructor() {
+        this.canvas = null;
+        this.ctx = null;
+        this.width = 0;
+        this.height = 0;
+        this.lastTime = 0;
+        this.isRunning = false;
+        this.pixelRatio = 1;
+    }
 
-    initialize() {
-        console.log(`[Game] Inicializando ${Constants.GAME.TITLE} v${Constants.GAME.VERSION}`);
+    init() {
         this.canvas = document.getElementById('game-canvas');
+        if (!this.canvas) {
+            console.error('Game: Canvas no encontrado');
+            return false;
+        }
+
         this.ctx = this.canvas.getContext('2d');
+        if (!this.ctx) {
+            console.error('Game: No se pudo obtener el contexto 2D');
+            return false;
+        }
+
+        // Configurar canvas para touch
+        this.canvas.style.touchAction = 'none';
+
+        // Resize inicial
         this.resizeCanvas();
+
+        // Escuchar cambios de tamaño
         window.addEventListener('resize', () => this.resizeCanvas());
-        this.initializeSystems();
-        this.setupEventListeners();
-        console.log('[Game] Inicializacion completada');
-    },
-
-    initializeSystems() {
-        this.systems.input = Input;
-        this.systems.renderer = Renderer;
-        this.systems.save = SaveSystem;
-        this.systems.resources = ResourceManager;
-        this.systems.base = Base;
-        this.systems.characters = Characters;
-        this.systems.ships = Ships;
-        this.systems.navigation = Navigation;
-        this.systems.screens = Screens;
         
-        Object.values(this.systems).forEach(system => {
-            if (system.initialize && typeof system.initialize === 'function') {
-                system.initialize();
-            }
+        // También escuchar orientación en móviles
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => this.resizeCanvas(), 100);
         });
-    },
 
-    setupEventListeners() {
-        EventBus.subscribe(Constants.EVENTS.GAME.START, () => this.start());
-        EventBus.subscribe(Constants.EVENTS.GAME.LOAD, () => this.load());
-        EventBus.subscribe(Constants.EVENTS.GAME.SAVE, () => this.save());
-    },
+        console.log('Game: Canvas inicializado', {
+            width: this.width,
+            height: this.height,
+            pixelRatio: this.pixelRatio
+        });
+
+        return true;
+    }
 
     resizeCanvas() {
         const gameArea = document.getElementById('game-area');
-        this.canvas.width = gameArea.clientWidth;
-        this.canvas.height = gameArea.clientHeight;
-        if (this.canvas.width < Constants.CANVAS.MIN_WIDTH) this.canvas.width = Constants.CANVAS.MIN_WIDTH;
-        if (this.canvas.height < Constants.CANVAS.MIN_HEIGHT) this.canvas.height = Constants.CANVAS.MIN_HEIGHT;
-        if (this.systems.renderer && this.systems.renderer.onResize) {
-            this.systems.renderer.onResize(this.canvas.width, this.canvas.height);
+        if (!gameArea || !this.canvas) return;
+
+        // Obtener tamaño real del contenedor en píxeles CSS
+        const width = Math.max(1, gameArea.clientWidth);
+        const height = Math.max(1, gameArea.clientHeight);
+        
+        // Limitar pixel ratio a 2 para rendimiento en móviles
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+        // Establecer tamaño CSS del canvas
+        this.canvas.style.width = `${width}px`;
+        this.canvas.style.height = `${height}px`;
+
+        // Establecer tamaño real del canvas (píxeles de dispositivo)
+        this.canvas.width = Math.floor(width * pixelRatio);
+        this.canvas.height = Math.floor(height * pixelRatio);
+
+        // Configurar transformación para dibujar en píxeles CSS
+        this.ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+        // Actualizar estado interno
+        this.width = width;
+        this.height = height;
+        this.pixelRatio = pixelRatio;
+
+        // Notificar al renderer
+        if (typeof Renderer !== 'undefined') {
+            Renderer.onResize(width, height);
         }
-    },
+
+        // Forzar redraw inmediato
+        if (typeof Renderer !== 'undefined' && typeof Renderer.render === 'function') {
+            Renderer.render();
+        }
+
+        console.log('Game: Canvas redimensionado', {
+            cssWidth: width,
+            cssHeight: height,
+            deviceWidth: this.canvas.width,
+            deviceHeight: this.canvas.height,
+            pixelRatio: pixelRatio
+        });
+    }
 
     start() {
         if (this.isRunning) return;
-        console.log('[Game] Iniciando partida nueva');
-        GameState.initialize();
-        EventBus.emit(Constants.EVENTS.NAVIGATION.SCREEN_CHANGE, { screen: Constants.SCREENS.GAME });
-        Object.values(this.systems).forEach(system => {
-            if (system.start && typeof system.start === 'function') system.start();
-        });
+        
         this.isRunning = true;
-        this.isPaused = false;
         this.lastTime = performance.now();
-        this.accumulator = 0;
-        requestAnimationFrame((time) => this.gameLoop(time));
-        console.log('[Game] Juego iniciado');
-    },
-
-    load() {
-        const savedData = this.systems.save.load();
-        if (savedData && GameState.deserialize(savedData)) {
-            console.log('[Game] Partida cargada');
-            EventBus.emit(Constants.EVENTS.NAVIGATION.SCREEN_CHANGE, { screen: Constants.SCREENS.GAME });
-            Object.values(this.systems).forEach(system => {
-                if (system.start && typeof system.start === 'function') system.start();
-            });
-            this.isRunning = true;
-            this.isPaused = false;
-            this.lastTime = performance.now();
-            this.accumulator = 0;
-            requestAnimationFrame((time) => this.gameLoop(time));
-        } else {
-            console.warn('[Game] No se pudo cargar la partida');
-        }
-    },
-
-    save() {
-        const data = GameState.serialize();
-        this.systems.save.save(data);
-        console.log('[Game] Partida guardada');
-    },
-
-    pause() {
-        this.isPaused = true;
-        console.log('[Game] Juego pausado');
-    },
-
-    resume() {
-        this.isPaused = false;
-        this.lastTime = performance.now();
-        console.log('[Game] Juego continuado');
-    },
+        this.gameLoop();
+        console.log('Game: Loop iniciado');
+    }
 
     stop() {
         this.isRunning = false;
-        console.log('[Game] Juego detenido');
-    },
+        console.log('Game: Loop detenido');
+    }
 
-    gameLoop(currentTime) {
+    gameLoop(currentTime = 0) {
         if (!this.isRunning) return;
-        requestAnimationFrame((time) => this.gameLoop(time));
-        if (this.isPaused) return;
+
         const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
-        this.accumulator += deltaTime;
-        const fixedTimeStep = 1 / Constants.CANVAS.FPS;
-        while (this.accumulator >= fixedTimeStep) {
-            this.update(fixedTimeStep);
-            this.accumulator -= fixedTimeStep;
-        }
+
+        // Limitar delta time para evitar saltos grandes
+        const safeDelta = Math.min(deltaTime, 0.1);
+
+        // Actualizar lógica del juego
+        this.update(safeDelta);
+
+        // Renderizar
         this.render();
-    },
+
+        // Siguiente frame
+        requestAnimationFrame((time) => this.gameLoop(time));
+    }
 
     update(deltaTime) {
-        GameState.gameInfo.playTime += deltaTime;
-        Object.values(this.systems).forEach(system => {
-            if (system.update && typeof system.update === 'function') system.update(deltaTime);
-        });
-        EventBus.emit(Constants.EVENTS.GAME.UPDATE, { deltaTime });
-    },
+        // Actualizar sistemas del juego
+        if (typeof Base !== 'undefined' && Base.update) {
+            Base.update(deltaTime);
+        }
+        if (typeof Characters !== 'undefined' && Characters.update) {
+            Characters.update(deltaTime);
+        }
+        if (typeof Ships !== 'undefined' && Ships.update) {
+            Ships.update(deltaTime);
+        }
+    }
 
     render() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        Object.values(this.systems).forEach(system => {
-            if (system.render && typeof system.render === 'function') system.render(this.ctx);
-        });
-        EventBus.emit(Constants.EVENTS.GAME.RENDER, { ctx: this.ctx });
-    }
-};
+        if (!this.ctx) return;
 
-window.Game = Game;
+        // Limpiar canvas
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        // Renderizar sistemas
+        if (typeof Renderer !== 'undefined' && Renderer.render) {
+            Renderer.render();
+        }
+    }
+
+    // Utilidad: convertir coordenadas de pantalla a coordenadas del canvas
+    getCanvasCoordinates(clientX, clientY) {
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+            x: (clientX - rect.left) * (this.canvas.width / rect.width),
+            y: (clientY - rect.top) * (this.canvas.height / rect.height)
+        };
+    }
+
+    // Utilidad: obtener coordenadas en píxeles CSS (para lógica del juego)
+    getCSSCoordinates(clientX, clientY) {
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    }
+}
+
+// Exportar instancia global
+window.Game = new Game();

@@ -1,122 +1,241 @@
-/**
- * Renderer.js
- * Sistema de renderizado del juego
- */
+// js/systems/Renderer.js
+// Sistema de renderizado - dibuja la cuadrícula de la base y elementos del juego
 
-const Renderer = {
-    width: 0,
-    height: 0,
-    camera: { x: 0, y: 0, zoom: 1 },
-    renderQueue: [],
-
-    initialize() {
-        console.log('[Renderer] Sistema inicializado');
-    },
+class RendererClass {
+    constructor() {
+        this.width = 0;
+        this.height = 0;
+        this.gridSize = 50; // Tamaño de cada celda en píxeles CSS
+        this.gridOffset = { x: 0, y: 0 };
+        this.camera = { x: 0, y: 0, zoom: 1 };
+    }
 
     onResize(width, height) {
         this.width = width;
         this.height = height;
-        console.log(`[Renderer] Resize: ${width}x${height}`);
-    },
+        
+        // Recalcular offset para centrar la cuadrícula
+        this.recalculateGridOffset();
+        
+        console.log('Renderer: Redimensionado', { width, height });
+    }
 
-    clear(ctx) {
-        ctx.clearRect(0, 0, this.width, this.height);
-    },
+    recalculateGridOffset() {
+        // Centrar la cuadrícula en el canvas
+        const gridWidth = Constants.GRID_SIZE * this.gridSize;
+        const gridHeight = Constants.GRID_SIZE * this.gridSize;
+        
+        this.gridOffset.x = (this.width - gridWidth) / 2;
+        this.gridOffset.y = (this.height - gridHeight) / 2;
+    }
 
-    drawSpaceBackground(ctx) {
-        const gradient = ctx.createRadialGradient(
-            this.width / 2, this.height / 2, 0,
-            this.width / 2, this.height / 2,
-            Math.max(this.width, this.height)
-        );
-        gradient.addColorStop(0, '#1a1a2e');
-        gradient.addColorStop(0.5, '#0f0f1e');
-        gradient.addColorStop(1, '#0a0e27');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, this.width, this.height);
-        this.drawStars(ctx);
-    },
+    render() {
+        const ctx = Game.ctx;
+        if (!ctx) return;
 
-    drawStars(ctx) {
-        const starCount = 200;
-        for (let i = 0; i < starCount; i++) {
-            const x = (Math.sin(i * 12.9898) * 43758.5453) % this.width;
-            const y = (Math.cos(i * 78.233) * 43758.5453) % this.height;
-            const size = (Math.sin(i * 5.567) + 2) * 0.5;
-            const alpha = (Math.sin(i * 3.234) + 1) / 2 * 0.5 + 0.2;
-            ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-            ctx.beginPath();
-            ctx.arc(Math.abs(x), Math.abs(y), size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    },
-
-    drawSprite(ctx, config) {
-        const { image, x, y, width = 32, height = 32, rotation = 0, scale = 1, color = null } = config;
+        // Guardar estado
         ctx.save();
-        ctx.translate(x + width / 2, y + height / 2);
-        ctx.rotate(rotation);
-        ctx.scale(scale, scale);
-        if (image) {
-            ctx.drawImage(image, -width / 2, -height / 2, width, height);
-        } else if (color) {
-            ctx.fillStyle = color;
-            ctx.fillRect(-width / 2, -height / 2, width, height);
-        }
-        ctx.restore();
-    },
 
-    drawText(ctx, config) {
-        const { text, x, y, color = '#FFFFFF', size = 16, align = 'center', font = 'Arial' } = config;
-        ctx.save();
-        ctx.fillStyle = color;
-        ctx.font = `${size}px ${font}`;
-        ctx.textAlign = align;
-        ctx.textBaseline = 'middle';
-        ctx.fillText(text, x, y);
-        ctx.restore();
-    },
+        // Aplicar cámara
+        ctx.translate(-this.camera.x, -this.camera.y);
+        ctx.scale(this.camera.zoom, this.camera.zoom);
 
-    drawShape(ctx, config) {
-        const { type = 'rect', x, y, width, height, color = '#FFFFFF', radius = 0 } = config;
-        ctx.save();
-        ctx.fillStyle = color;
-        if (type === 'rect') {
-            if (radius > 0) {
-                ctx.beginPath();
-                ctx.roundRect(x, y, width, height, radius);
-                ctx.fill();
-            } else {
-                ctx.fillRect(x, y, width, height);
-            }
-        } else if (type === 'circle') {
-            ctx.beginPath();
-            ctx.arc(x, y, width / 2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.restore();
-    },
-
-    render(ctx) {
+        // Dibujar fondo espacial
         this.drawSpaceBackground(ctx);
-        if (Navigation && Navigation.currentTab === Constants.TABS.BASE) {
-            Base.render(ctx, this.width, this.height);
-        }
-        this.drawDebugInfo(ctx);
-    },
 
-    drawDebugInfo(ctx) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(10, 10, 200, 80);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(`FPS: ${Constants.CANVAS.FPS}`, 20, 30);
-        ctx.fillText(`Recursos: ₡${GameState.resources.credits}`, 20, 50);
-        ctx.fillText(`Base Nivel: ${GameState.base.level}`, 20, 70);
+        // Dibujar cuadrícula de la base
+        this.drawBaseGrid(ctx);
+
+        // Dibujar edificios
+        if (typeof Base !== 'undefined' && Base.buildings) {
+            this.drawBuildings(ctx, Base.buildings);
+        }
+
+        // Dibujar personajes
+        if (typeof Characters !== 'undefined' && Characters.characters) {
+            this.drawCharacters(ctx, Characters.characters);
+        }
+
+        // Dibujar naves
+        if (typeof Ships !== 'undefined' && Ships.ships) {
+            this.drawShips(ctx, Ships.ships);
+        }
+
+        // Restaurar estado
         ctx.restore();
     }
-};
 
-window.Renderer = Renderer;
+    drawSpaceBackground(ctx) {
+        // Fondo negro con estrellas
+        ctx.fillStyle = '#000011';
+        ctx.fillRect(
+            this.camera.x,
+            this.camera.y,
+            this.width / this.camera.zoom,
+            this.height / this.camera.zoom
+        );
+
+        // Estrellas (generadas una vez y cacheadas)
+        if (!this.stars) {
+            this.stars = [];
+            for (let i = 0; i < 200; i++) {
+                this.stars.push({
+                    x: Math.random() * 2000,
+                    y: Math.random() * 2000,
+                    size: Math.random() * 2 + 0.5,
+                    brightness: Math.random() * 0.5 + 0.5
+                });
+            }
+        }
+
+        ctx.fillStyle = '#fff';
+        this.stars.forEach(star => {
+            ctx.globalAlpha = star.brightness;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+    }
+
+    drawBaseGrid(ctx) {
+        const gridSize = Constants.GRID_SIZE;
+        const cellSize = this.gridSize;
+
+        // Dibujar cuadrícula
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
+        ctx.lineWidth = 1;
+
+        for (let x = 0; x <= gridSize; x++) {
+            const px = this.gridOffset.x + x * cellSize;
+            ctx.beginPath();
+            ctx.moveTo(px, this.gridOffset.y);
+            ctx.lineTo(px, this.gridOffset.y + gridSize * cellSize);
+            ctx.stroke();
+        }
+
+        for (let y = 0; y <= gridSize; y++) {
+            const py = this.gridOffset.y + y * cellSize;
+            ctx.beginPath();
+            ctx.moveTo(this.gridOffset.x, py);
+            ctx.lineTo(this.gridOffset.x + gridSize * cellSize, py);
+            ctx.stroke();
+        }
+
+        // Dibujar borde de la base
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+            this.gridOffset.x,
+            this.gridOffset.y,
+            gridSize * cellSize,
+            gridSize * cellSize
+        );
+    }
+
+    drawBuildings(ctx, buildings) {
+        buildings.forEach(building => {
+            const x = this.gridOffset.x + building.x * this.gridSize;
+            const y = this.gridOffset.y + building.y * this.gridSize;
+            const size = this.gridSize - 4;
+
+            // Sombra
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(x + 4, y + 4, size, size);
+
+            // Edificio
+            ctx.fillStyle = building.color || '#4a90d9';
+            ctx.fillRect(x + 2, y + 2, size, size);
+
+            // Borde
+            ctx.strokeStyle = 'rgba(255, 215, 0, 0.7)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x + 2, y + 2, size, size);
+
+            // Icono o texto
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(
+                building.icon || '🏠',
+                x + size / 2,
+                y + size / 2
+            );
+        });
+    }
+
+    drawCharacters(ctx, characters) {
+        characters.forEach(char => {
+            const x = this.gridOffset.x + char.x * this.gridSize + this.gridSize / 2;
+            const y = this.gridOffset.y + char.y * this.gridSize + this.gridSize / 2;
+
+            // Círculo del personaje
+            ctx.fillStyle = char.color || '#5cb85c';
+            ctx.beginPath();
+            ctx.arc(x, y, this.gridSize * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Borde
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Icono
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(char.icon || '👤', x, y);
+        });
+    }
+
+    drawShips(ctx, ships) {
+        ships.forEach(ship => {
+            const x = this.gridOffset.x + ship.x * this.gridSize + this.gridSize / 2;
+            const y = this.gridOffset.y + ship.y * this.gridSize + this.gridSize / 2;
+
+            // Nave (triángulo)
+            ctx.fillStyle = ship.color || '#d9534f';
+            ctx.beginPath();
+            ctx.moveTo(x, y - this.gridSize * 0.4);
+            ctx.lineTo(x - this.gridSize * 0.3, y + this.gridSize * 0.3);
+            ctx.lineTo(x + this.gridSize * 0.3, y + this.gridSize * 0.3);
+            ctx.closePath();
+            ctx.fill();
+
+            // Borde
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        });
+    }
+
+    // Utilidad: convertir coordenadas de pantalla a coordenadas de la cuadrícula
+    screenToGrid(screenX, screenY) {
+        const gridX = Math.floor((screenX - this.gridOffset.x) / this.gridSize);
+        const gridY = Math.floor((screenY - this.gridOffset.y) / this.gridSize);
+        return { x: gridX, y: gridY };
+    }
+
+    // Utilidad: convertir coordenadas de la cuadrícula a pantalla
+    gridToScreen(gridX, gridY) {
+        return {
+            x: this.gridOffset.x + gridX * this.gridSize + this.gridSize / 2,
+            y: this.gridOffset.y + gridY * this.gridSize + this.gridSize / 2
+        };
+    }
+
+    // Utilidad: verificar si un punto está dentro de la cuadrícula
+    isPointInGrid(x, y) {
+        const gridX = this.gridOffset.x;
+        const gridY = this.gridOffset.y;
+        const gridSize = Constants.GRID_SIZE * this.gridSize;
+
+        return x >= gridX && x <= gridX + gridSize &&
+               y >= gridY && y <= gridY + gridSize;
+    }
+}
+
+// Exportar instancia global
+window.Renderer = new RendererClass();

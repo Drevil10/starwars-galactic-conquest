@@ -1,248 +1,257 @@
-/**
- * Base.js
- * Sistema de gesti�n y construcci�n de la base
- */
+// js/gameplay/Base.js
+// Sistema de gestión de la base - edificios, construcción, recursos
 
-const Base = {
-    buildings: [],
-    constructed: [],
-    grid: { rows: 5, cols: 6, cellSize: 100 },
-
-    initialize() {
-        console.log('[Base] Sistema inicializado');
-        this.initializeBuildings();
-    },
-
-    initializeBuildings() {
-        this.addBuilding({
-            id: 'command_center', name: 'Centro de Comando', type: 'core',
-            description: 'El coraz�n de tu base. Aumenta la producci�n de todos los recursos.',
-            stats: { production: { credits: 5, materials: 2, energy: 1 } },
-            buildCost: { credits: 500, materials: 300, energy: 150 },
-            buildTime: 60, size: { width: 2, height: 2 }
-        });
-        this.addBuilding({
-            id: 'material_mine', name: 'Mina de Materiales', type: 'production',
-            description: 'Extrae materiales de asteroides cercanos.',
-            stats: { production: { materials: 10 } },
-            buildCost: { credits: 200, materials: 100, energy: 50 },
-            buildTime: 30, size: { width: 1, height: 1 }
-        });
-        this.addBuilding({
-            id: 'power_plant', name: 'Planta de Energ�a', type: 'production',
-            description: 'Genera energ�a para tu base.',
-            stats: { production: { energy: 8 } },
-            buildCost: { credits: 250, materials: 150, energy: 0 },
-            buildTime: 35, size: { width: 1, height: 1 }
-        });
-        this.addBuilding({
-            id: 'credit_exchange', name: 'Banco de Cr�ditos', type: 'production',
-            description: 'Genera cr�ditos mediante comercio.',
-            stats: { production: { credits: 15 } },
-            buildCost: { credits: 300, materials: 200, energy: 100 },
-            buildTime: 40, size: { width: 1, height: 1 }
-        });
-        this.addBuilding({
-            id: 'hangar', name: 'Hangar', type: 'military',
-            description: 'Permite construir y mantener naves.',
-            stats: { shipCapacity: 5, buildSpeed: 1.1 },
-            buildCost: { credits: 400, materials: 300, energy: 150 },
-            buildTime: 50, size: { width: 2, height: 1 }
-        });
-        this.addBuilding({
-            id: 'barracks', name: 'Barracas', type: 'military',
-            description: 'Entrena y aloja personajes.',
-            stats: { characterCapacity: 3, trainingSpeed: 1.1 },
-            buildCost: { credits: 350, materials: 250, energy: 120 },
-            buildTime: 45, size: { width: 1, height: 1 }
-        });
-        this.addBuilding({
-            id: 'research_lab', name: 'Laboratorio', type: 'research',
-            description: 'Investiga nuevas tecnolog�as y mejoras.',
-            stats: { researchSpeed: 1.2 },
-            buildCost: { credits: 500, materials: 350, energy: 200 },
-            buildTime: 60, size: { width: 2, height: 1 }
-        });
-        this.addBuilding({
-            id: 'defense_wall', name: 'Muro Defensivo', type: 'defense',
-            description: 'Protege tu base de ataques.',
-            stats: { defense: 50 },
-            buildCost: { credits: 150, materials: 200, energy: 50 },
-            buildTime: 25, size: { width: 1, height: 1 }
-        });
-        this.addBuilding({
-            id: 'defense_tower', name: 'Torre de Defensa', type: 'defense',
-            description: 'Dispara autom�ticamente a enemigos cercanos.',
-            stats: { defense: 100, attack: 30 },
-            buildCost: { credits: 300, materials: 250, energy: 100 },
-            buildTime: 40, size: { width: 1, height: 1 }
-        });
-        this.addBuilding({
-            id: 'storage', name: 'Almac�n', type: 'storage',
-            description: 'Aumenta la capacidad m�xima de recursos.',
-            stats: { storageBonus: { credits: 2000, materials: 1000, energy: 500 } },
-            buildCost: { credits: 200, materials: 150, energy: 75 },
-            buildTime: 30, size: { width: 1, height: 1 }
-        });
-
-        console.log(`[Base] ${this.buildings.length} edificios disponibles`);
-    },
-
-    addBuilding(building) { this.buildings.push(building); },
-    getBuilding(id) { return this.buildings.find(b => b.id === id) || null; },
-
-    build(id, gridX, gridY) {
-        const building = this.getBuilding(id);
-        if (!building) {
-            console.warn('[Base] Edificio no encontrado');
-            return false;
-        }
-        if (!GameState.canAfford(building.buildCost)) {
-            console.warn('[Base] Recursos insuficientes');
-            return false;
-        }
-        if (!this.canPlaceAt(building, gridX, gridY)) {
-            console.warn('[Base] Posici�n inv�lida');
-            return false;
-        }
-        GameState.payCosts(building.buildCost);
-        const constructedBuilding = {
-            ...building, instanceId: Date.now(),
-            gridX, gridY, level: 1, completed: true
-        };
-        this.constructed.push(constructedBuilding);
-        GameState.base.buildings.push(constructedBuilding);
-        console.log(`[Base] ${building.name} construido en (${gridX}, ${gridY})`);
-        EventBus.emit(Constants.EVENTS.BASE.BUILD, { building: constructedBuilding, gridX, gridY });
-        return true;
-    },
-
-    canPlaceAt(building, gridX, gridY) {
-        const size = building.size || { width: 1, height: 1 };
-        if (gridX < 0 || gridY < 0 ||
-            gridX + size.width > this.grid.cols ||
-            gridY + size.height > this.grid.rows) {
-            return false;
-        }
-        for (const existing of this.constructed) {
-            const existingSize = existing.size || { width: 1, height: 1 };
-            if (gridX < existing.gridX + existingSize.width &&
-                gridX + size.width > existing.gridX &&
-                gridY < existing.gridY + existingSize.height &&
-                gridY + size.height > existing.gridY) {
-                return false;
+class BaseClass {
+    constructor() {
+        this.buildings = [];
+        this.selectedBuilding = null;
+        this.buildMode = false;
+        this.availableBuildings = [
+            {
+                id: 'command-center',
+                name: 'Centro de Comando',
+                icon: '🏛️',
+                color: '#4a90d9',
+                cost: { credits: 100, crystals: 0, energy: 50 },
+                size: 2,
+                description: 'Centro de operaciones de tu base'
+            },
+            {
+                id: 'power-plant',
+                name: 'Planta de Energía',
+                icon: '⚡',
+                color: '#ffd700',
+                cost: { credits: 50, crystals: 10, energy: 0 },
+                size: 1,
+                description: 'Genera energía para tu base'
+            },
+            {
+                id: 'mine',
+                name: 'Mina de Cristales',
+                icon: '💎',
+                color: '#9b59b6',
+                cost: { credits: 75, crystals: 0, energy: 25 },
+                size: 1,
+                description: 'Extrae cristales del subsuelo'
+            },
+            {
+                id: 'barracks',
+                name: 'Cuarteles',
+                icon: '🎖️',
+                color: '#e74c3c',
+                cost: { credits: 150, crystals: 25, energy: 50 },
+                size: 2,
+                description: 'Entrena personajes'
+            },
+            {
+                id: 'hangar',
+                name: 'Hangar',
+                icon: '🚀',
+                color: '#3498db',
+                cost: { credits: 200, crystals: 50, energy: 75 },
+                size: 2,
+                description: 'Construye y repara naves'
             }
-        }
-        return true;
-    },
-
-    upgrade(instanceId) {
-        const building = this.constructed.find(b => b.instanceId === instanceId);
-        if (!building) return false;
-        const upgradeCost = {
-            credits: Math.floor(building.buildCost.credits * 1.5),
-            materials: Math.floor(building.buildCost.materials * 1.5),
-            energy: Math.floor(building.buildCost.energy * 1.5)
-        };
-        if (!GameState.canAfford(upgradeCost)) {
-            console.warn('[Base] Recursos insuficientes para mejorar');
-            return false;
-        }
-        GameState.payCosts(upgradeCost);
-        building.level++;
-        if (building.stats.production) {
-            for (const resource of Object.keys(building.stats.production)) {
-                building.stats.production[resource] *= 1.1;
-            }
-        }
-        console.log(`[Base] ${building.name} mejorado a nivel ${building.level}`);
-        EventBus.emit(Constants.EVENTS.BASE.UPGRADE, { building });
-        return true;
-    },
-
-    render(ctx, width, height) {
-        const totalWidth = this.grid.cols * this.grid.cellSize;
-        const totalHeight = this.grid.rows * this.grid.cellSize;
-        const offsetX = (width - totalWidth) / 2;
-        const offsetY = (height - totalHeight) / 2;
-        this.drawGrid(ctx, offsetX, offsetY);
-        this.drawBuildings(ctx, offsetX, offsetY);
-        this.drawInfo(ctx, width, height);
-    },
-
-    drawGrid(ctx, offsetX, offsetY) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(10, 14, 39, 0.5)';
-        ctx.fillRect(offsetX - 10, offsetY - 10,
-            this.grid.cols * this.grid.cellSize + 20,
-            this.grid.rows * this.grid.cellSize + 20);
-        ctx.strokeStyle = 'rgba(255, 232, 31, 0.3)';
-        ctx.lineWidth = 1;
-        for (let x = 0; x <= this.grid.cols; x++) {
-            ctx.beginPath();
-            ctx.moveTo(offsetX + x * this.grid.cellSize, offsetY);
-            ctx.lineTo(offsetX + x * this.grid.cellSize, offsetY + this.grid.rows * this.grid.cellSize);
-            ctx.stroke();
-        }
-        for (let y = 0; y <= this.grid.rows; y++) {
-            ctx.beginPath();
-            ctx.moveTo(offsetX, offsetY + y * this.grid.cellSize);
-            ctx.lineTo(offsetX + this.grid.cols * this.grid.cellSize, offsetY + y * this.grid.cellSize);
-            ctx.stroke();
-        }
-        ctx.restore();
-    },
-
-    drawBuildings(ctx, offsetX, offsetY) {
-        for (const building of this.constructed) {
-            const size = building.size || { width: 1, height: 1 };
-            const x = offsetX + building.gridX * this.grid.cellSize;
-            const y = offsetY + building.gridY * this.grid.cellSize;
-            const width = size.width * this.grid.cellSize - 4;
-            const height = size.height * this.grid.cellSize - 4;
-            const colors = {
-                core: '#FFE81F', production: '#4CAF50', military: '#F44336',
-                research: '#2196F3', defense: '#9C27B0', storage: '#FF9800'
-            };
-            const color = colors[building.type] || '#8B8B8B';
-            ctx.save();
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(x + 4, y + 4, width, height);
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y, width, height);
-            ctx.strokeStyle = '#FFE81F';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, width, height);
-            if (building.level > 1) {
-                ctx.fillStyle = '#FFFFFF';
-                ctx.font = 'bold 14px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(`Lv.${building.level}`, x + width / 2, y + height / 2);
-            }
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = '11px Arial';
-            ctx.fillText(building.name, x + width / 2, y + height - 10);
-            ctx.restore();
-        }
-    },
-
-    drawInfo(ctx, width, height) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(10, height - 120, 250, 110);
-        ctx.fillStyle = '#FFE81F';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(`Base Nivel ${GameState.base.level}`, 20, height - 100);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '14px Arial';
-        ctx.fillText(`Edificios: ${this.constructed.length}`, 20, height - 75);
-        ctx.fillText(`Capacidad: ${this.grid.rows * this.grid.cols}`, 20, height - 55);
-        ctx.fillStyle = '#4CAF50';
-        ctx.font = '12px Arial';
-        ctx.fillText(`Prod: ₡${GameState.production.credits}/s  ◆${GameState.production.materials}/s  ⚡${GameState.production.energy}/s`, 20, height - 30);
-        ctx.restore();
+        ];
     }
-};
 
-window.Base = Base;
+    init() {
+        // Cargar edificios guardados
+        const saved = SaveSystem.load('base');
+        if (saved && saved.buildings) {
+            this.buildings = saved.buildings;
+        } else {
+            // Edificio inicial
+            this.addBuilding('command-center', 2, 2);
+        }
+
+        console.log('Base: Inicializada con', this.buildings.length, 'edificios');
+        
+        // Suscribirse a eventos de input
+        EventBus.on('input:canvasClick', (pos) => this.handleCanvasClick(pos.x, pos.y));
+        EventBus.on('input:tap', (pos) => this.handleCanvasClick(pos.x, pos.y));
+    }
+
+    addBuilding(buildingId, gridX, gridY) {
+        const buildingTemplate = this.availableBuildings.find(b => b.id === buildingId);
+        if (!buildingTemplate) return false;
+
+        const building = {
+            id: buildingId,
+            name: buildingTemplate.name,
+            icon: buildingTemplate.icon,
+            color: buildingTemplate.color,
+            x: gridX,
+            y: gridY,
+            size: buildingTemplate.size,
+            level: 1,
+            placedAt: Date.now()
+        };
+
+        // Verificar si hay colisión
+        if (this.checkCollision(building)) {
+            console.warn('Base: Colisión detectada');
+            return false;
+        }
+
+        this.buildings.push(building);
+        this.save();
+        
+        // Notificar cambio
+        EventBus.emit('base:buildingAdded', { building });
+        
+        return true;
+    }
+
+    removeBuilding(index) {
+        if (index < 0 || index >= this.buildings.length) return false;
+        
+        const building = this.buildings[index];
+        this.buildings.splice(index, 1);
+        this.save();
+        
+        EventBus.emit('base:buildingRemoved', { building });
+        return true;
+    }
+
+    checkCollision(newBuilding) {
+        return this.buildings.some(existing => {
+            // Verificar superposición simple (para edificios de 1x1 o 2x2)
+            const overlapX = Math.abs(existing.x - newBuilding.x) < (existing.size + newBuilding.size) / 2;
+            const overlapY = Math.abs(existing.y - newBuilding.y) < (existing.size + newBuilding.size) / 2;
+            return overlapX && overlapY;
+        });
+    }
+
+    canAfford(buildingId) {
+        const building = this.availableBuildings.find(b => b.id === buildingId);
+        if (!building) return false;
+
+        const resources = GameState.getResources();
+        return resources.credits >= building.cost.credits &&
+               resources.crystals >= building.cost.crystals &&
+               resources.energy >= building.cost.energy;
+    }
+
+    purchaseBuilding(buildingId) {
+        const building = this.availableBuildings.find(b => b.id === buildingId);
+        if (!building || !this.canAfford(buildingId)) return false;
+
+        // Descontar recursos
+        GameState.addResources({
+            credits: -building.cost.credits,
+            crystals: -building.cost.crystals,
+            energy: -building.cost.energy
+        });
+
+        this.buildMode = true;
+        this.selectedBuilding = building;
+        
+        EventBus.emit('base:buildModeActivated', { building });
+        return true;
+    }
+
+    cancelBuildMode() {
+        this.buildMode = false;
+        this.selectedBuilding = null;
+        EventBus.emit('base:buildModeDeactivated');
+    }
+
+    update(deltaTime) {
+        // Lógica de actualización de edificios
+        // Producción de recursos, etc.
+    }
+
+    getBuildingAt(gridX, gridY) {
+        return this.buildings.find(b => b.x === gridX && b.y === gridY);
+    }
+
+    getBuildingsInRadius(centerX, centerY, radius) {
+        return this.buildings.filter(b => {
+            const dx = b.x - centerX;
+            const dy = b.y - centerY;
+            return Math.sqrt(dx * dx + dy * dy) <= radius;
+        });
+    }
+
+    save() {
+        SaveSystem.save('base', {
+            buildings: this.buildings,
+            lastSaved: Date.now()
+        });
+    }
+
+    // UI: Mostrar panel de construcción
+    showBuildPanel() {
+        const panel = document.createElement('div');
+        panel.className = 'canvas-overlay';
+        panel.id = 'build-panel';
+        panel.style.position = 'absolute';
+        panel.style.bottom = '80px';
+        panel.style.left = '50%';
+        panel.style.transform = 'translateX(-50%)';
+        panel.style.minWidth = '280px';
+        panel.style.maxWidth = '90%';
+
+        let html = '<h3 style="margin-bottom: 1rem; color: #ffd700;">Construir</h3>';
+        html += '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">';
+        
+        this.availableBuildings.forEach(building => {
+            const canAfford = this.canAfford(building.id);
+            html += `
+                <button class="action-btn ${canAfford ? '' : 'cancel'}" 
+                        data-building="${building.id}"
+                        ${!canAfford ? 'disabled' : ''}
+                        style="flex-direction: column; padding: 0.75rem;">
+                    <span style="font-size: 1.5rem;">${building.icon}</span>
+                    <span style="font-size: 0.75rem; margin-top: 0.25rem;">${building.name}</span>
+                    <span style="font-size: 0.65rem; margin-top: 0.25rem; color: #ffd700;">
+                        💰${building.cost.credits} 💎${building.cost.crystals} ⚡${building.cost.energy}
+                    </span>
+                </button>
+            `;
+        });
+        
+        html += '</div>';
+        html += `<button class="action-btn cancel" id="cancel-build" style="width: 100%; margin-top: 1rem;">Cancelar</button>`;
+
+        panel.innerHTML = html;
+        document.getElementById('game-area').appendChild(panel);
+
+        // Event listeners
+        panel.querySelectorAll('[data-building]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const buildingId = e.currentTarget.dataset.building;
+                this.purchaseBuilding(buildingId);
+                panel.remove();
+            });
+        });
+
+        panel.querySelector('#cancel-build').addEventListener('click', () => {
+            this.cancelBuildMode();
+            panel.remove();
+        });
+    }
+
+    // Manejar click en el canvas para construcción
+    handleCanvasClick(screenX, screenY) {
+        if (!this.buildMode || !this.selectedBuilding) return;
+
+        const gridPos = Renderer.screenToGrid(screenX, screenY);
+        
+        // Verificar límites de la cuadrícula
+        if (gridPos.x < 0 || gridPos.x >= Constants.GRID_SIZE ||
+            gridPos.y < 0 || gridPos.y >= Constants.GRID_SIZE) {
+            return;
+        }
+        
+        if (this.addBuilding(this.selectedBuilding.id, gridPos.x, gridPos.y)) {
+            this.buildMode = false;
+            this.selectedBuilding = null;
+            EventBus.emit('base:buildingPlaced', { x: gridPos.x, y: gridPos.y });
+        }
+    }
+}
+
+// Exportar instancia global
+window.Base = new BaseClass();

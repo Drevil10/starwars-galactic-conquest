@@ -2,69 +2,68 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Star Wars: Galactic Conquest</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <!-- Pantalla de Inicio -->
-    <div id="start-screen" class="screen active">
-        <div class="start-content">
-            <h1 class="game-title">Star Wars</h1>
-            <h2 class="game-subtitle">Galactic Conquest</h2>
-            <button id="start-btn" class="btn-primary">Comenzar Aventura</button>
-            <button id="load-btn" class="btn-secondary">Cargar Partida</button>
+    <div id="app">
+        <!-- Pantalla de inicio -->
+        <div id="start-screen" class="screen active">
+            <h1>Star Wars: Galactic Conquest</h1>
+            <p class="subtitle">Explora la galaxia. Construye tu imperio.</p>
+            <button id="start-btn" class="primary-btn">Comenzar aventura</button>
         </div>
-    </div>
 
-    <!-- Pantalla de Juego -->
-    <div id="game-screen" class="screen">
-        <!-- Área de Juego Principal -->
-        <div id="game-area">
-            <canvas id="game-canvas"></canvas>
-            
-            <!-- Overlay de información -->
-            <div id="game-overlay">
-                <div class="resource-bar">
-                    <span class="resource" id="resource-credits">
-                        <span class="resource-icon">₡</span>
-                        <span class="resource-value">0</span>
-                    </span>
-                    <span class="resource" id="resource-materials">
-                        <span class="resource-icon">◆</span>
-                        <span class="resource-value">0</span>
-                    </span>
-                    <span class="resource" id="resource-energy">
-                        <span class="resource-icon">⚡</span>
-                        <span class="resource-value">0</span>
-                    </span>
+        <!-- Pantalla de juego -->
+        <div id="game-screen" class="screen">
+            <!-- Header con recursos -->
+            <header id="resources-header">
+                <div class="resource" id="resource-credits">
+                    <span class="resource-icon">💰</span>
+                    <span class="resource-value">0</span>
                 </div>
-            </div>
-        </div>
+                <div class="resource" id="resource-crystals">
+                    <span class="resource-icon">💎</span>
+                    <span class="resource-value">0</span>
+                </div>
+                <div class="resource" id="resource-energy">
+                    <span class="resource-icon">⚡</span>
+                    <span class="resource-value">0</span>
+                </div>
+            </header>
 
-        <!-- Navegaci�n Inferior -->
-        <nav id="bottom-nav">
-            <button class="nav-btn active" data-tab="base">
-                <span class="nav-icon">🏠</span>
-                <span class="nav-label">Base</span>
-            </button>
-            <button class="nav-btn" data-tab="characters">
-                <span class="nav-icon">👥</span>
-                <span class="nav-label">Personajes</span>
-            </button>
-            <button class="nav-btn" data-tab="ships">
-                <span class="nav-icon">🚀</span>
-                <span class="nav-label">Naves</span>
-            </button>
-            <button class="nav-btn" data-tab="explore">
-                <span class="nav-icon">🌌</span>
-                <span class="nav-label">Explorar</span>
-            </button>
-            <button class="nav-btn" data-tab="missions">
-                <span class="nav-icon">📋</span>
-                <span class="nav-label">Misiones</span>
-            </button>
-        </nav>
+            <!-- Área de juego (canvas) -->
+            <div id="game-area">
+                <canvas id="game-canvas"></canvas>
+            </div>
+
+            <!-- Navegaci�n inferior -->
+            <nav id="bottom-nav">
+                <button class="nav-btn active" data-screen="base">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-label">Base</span>
+                </button>
+                <button class="nav-btn" data-screen="characters">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">Personajes</span>
+                </button>
+                <button class="nav-btn" data-screen="ships">
+                    <span class="nav-icon">🚀</span>
+                    <span class="nav-label">Naves</span>
+                </button>
+                <button class="nav-btn" data-screen="explore">
+                    <span class="nav-icon">🌌</span>
+                    <span class="nav-label">Explorar</span>
+                </button>
+                <button class="nav-btn" data-screen="missions">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-label">Misiones</span>
+                </button>
+            </nav>
+        </div>
     </div>
 
     <!-- Scripts -->
@@ -72,15 +71,15 @@
     <script src="js/core/EventBus.js"></script>
     <script src="js/core/GameState.js"></script>
     <script src="js/core/Game.js"></script>
-    <script src="js/systems/Input.js"></script>
-    <script src="js/systems/Renderer.js"></script>
-    <script src="js/systems/SaveSystem.js"></script>
     <script src="js/systems/ResourceManager.js"></script>
+    <script src="js/systems/Renderer.js"></script>
+    <script src="js/systems/Input.js"></script>
+    <script src="js/systems/SaveSystem.js"></script>
+    <script src="js/gameplay/Base.js"></script>
     <script src="js/gameplay/Characters.js"></script>
     <script src="js/gameplay/Ships.js"></script>
-    <script src="js/gameplay/Base.js"></script>
-    <script src="js/ui/Navigation.js"></script>
     <script src="js/ui/Screens.js"></script>
+    <script src="js/ui/Navigation.js"></script>
     <script src="js/ui/Components.js"></script>
     <script src="js/main.js"></script>
 </body>

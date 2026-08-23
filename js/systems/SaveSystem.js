@@ -1,100 +1,116 @@
-/**
- * SaveSystem.js
- * Sistema de guardado y carga usando LocalStorage
- */
+// js/systems/SaveSystem.js
+// Sistema de guardado - LocalStorage con versionado y migración
 
-const SaveSystem = {
-    saveKey: Constants.GAME.SAVE_KEY,
-    autoSaveInterval: 60,
-    autoSaveTimer: 0,
-    autoSaveEnabled: true,
+class SaveSystemClass {
+    constructor() {
+        this.VERSION = 1;
+        this.PREFIX = 'swgc_';
+    }
 
-    initialize() {
-        console.log('[SaveSystem] Sistema inicializado');
-        EventBus.subscribe(Constants.EVENTS.GAME.UPDATE, (data) => {
-            if (this.autoSaveEnabled) {
-                this.autoSaveTimer += data.deltaTime;
-                if (this.autoSaveTimer >= this.autoSaveInterval) {
-                    this.autoSave();
-                    this.autoSaveTimer = 0;
-                }
-            }
-        });
-    },
-
-    save(data) {
+    save(key, data) {
         try {
-            const serialized = JSON.stringify(data);
-            localStorage.setItem(this.saveKey, serialized);
-            console.log(`[SaveSystem] Partida guardada (${serialized.length} bytes)`);
+            const saveData = {
+                version: this.VERSION,
+                timestamp: Date.now(),
+                data: data
+            };
+            
+            localStorage.setItem(this.PREFIX + key, JSON.stringify(saveData));
+            console.log('SaveSystem: Guardado', key);
             return true;
         } catch (error) {
-            console.error('[SaveSystem] Error al guardar:', error);
-            if (error.name === 'QuotaExceededError') {
-                console.warn('[SaveSystem] Espacio lleno');
-                EventBus.emit(Constants.EVENTS.UI.SHOW_NOTIFICATION, {
-                    message: 'Espacio de guardado lleno',
-                    type: 'error'
-                });
-            }
+            console.error('SaveSystem: Error al guardar', key, error);
             return false;
         }
-    },
+    }
 
-    load() {
+    load(key) {
         try {
-            const serialized = localStorage.getItem(this.saveKey);
-            if (!serialized) {
-                console.log('[SaveSystem] No hay partida guardada');
-                return null;
+            const json = localStorage.getItem(this.PREFIX + key);
+            if (!json) return null;
+            
+            const saveData = JSON.parse(json);
+            
+            // Verificar versión y migrar si es necesario
+            if (saveData.version < this.VERSION) {
+                console.log('SaveSystem: Migrando de v', saveData.version, 'a v', this.VERSION);
+                return this.migrate(saveData.data, saveData.version, this.VERSION);
             }
-            const data = JSON.parse(serialized);
-            console.log(`[SaveSystem] Partida cargada (${serialized.length} bytes)`);
-            return data;
+            
+            return saveData.data;
         } catch (error) {
-            console.error('[SaveSystem] Error al cargar:', error);
+            console.error('SaveSystem: Error al cargar', key, error);
             return null;
         }
-    },
+    }
 
-    hasSave() {
-        return localStorage.getItem(this.saveKey) !== null;
-    },
+    migrate(data, fromVersion, toVersion) {
+        // Implementar migraciones aquí si cambian los esquemas
+        // Ejemplo: if (fromVersion === 1 && toVersion === 2) { ... }
+        
+        // Por ahora, retorno los datos tal cual (compatibilidad hacia atrás)
+        return data;
+    }
 
-    delete() {
+    exists(key) {
+        return localStorage.getItem(this.PREFIX + key) !== null;
+    }
+
+    remove(key) {
         try {
-            localStorage.removeItem(this.saveKey);
-            console.log('[SaveSystem] Partida eliminada');
+            localStorage.removeItem(this.PREFIX + key);
+            console.log('SaveSystem: Eliminado', key);
             return true;
         } catch (error) {
-            console.error('[SaveSystem] Error al eliminar:', error);
+            console.error('SaveSystem: Error al eliminar', key, error);
             return false;
         }
-    },
-
-    autoSave() {
-        const data = GameState.serialize();
-        this.save(data);
-        if (GameState.settings.notifications) {
-            EventBus.emit(Constants.EVENTS.UI.SHOW_NOTIFICATION, {
-                message: 'Partida guardada',
-                type: 'info',
-                duration: 2000
-            });
-        }
-    },
-
-    getSaveInfo() {
-        const data = this.load();
-        if (!data) return null;
-        return {
-            version: data.gameInfo?.version,
-            lastSave: data.gameInfo?.lastSave,
-            playTime: data.gameInfo?.playTime,
-            level: data.progress?.level,
-            resources: data.resources
-        };
     }
-};
 
-window.SaveSystem = SaveSystem;
+    clear(key) {
+        return this.remove(key);
+    }
+
+    clearAll() {
+        try {
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(this.PREFIX)) {
+                    keys.push(key);
+                }
+            }
+            
+            keys.forEach(key => localStorage.removeItem(key));
+            console.log('SaveSystem: Todos los datos eliminados');
+            return true;
+        } catch (error) {
+            console.error('SaveSystem: Error al limpiar todo', error);
+            return false;
+        }
+    }
+
+    // Utilidad: listar todos los saves
+    listSaves() {
+        const saves = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(this.PREFIX)) {
+                try {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    saves.push({
+                        key: key.replace(this.PREFIX, ''),
+                        version: data.version,
+                        timestamp: data.timestamp
+                    });
+                } catch (e) {
+                    // Ignorar datos corruptos
+                }
+            }
+        }
+        return saves;
+    }
+}
+
+// Exportar instancia global
+window.SaveSystem = new SaveSystemClass();

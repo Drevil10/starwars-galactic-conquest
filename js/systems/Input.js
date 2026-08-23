@@ -1,78 +1,149 @@
-/**
- * Input.js
- * Sistema de gesti�n de inputs
- */
+// js/systems/Input.js
+// Sistema de entrada - maneja touch y mouse sin bloquear botones
 
-const Input = {
-    keys: {},
-    mouse: { x: 0, y: 0, leftDown: false, rightDown: false, clicked: false },
-    canvas: null,
+class InputClass {
+    constructor() {
+        this.isTouch = false;
+        this.startPos = { x: 0, y: 0 };
+        this.currentPos = { x: 0, y: 0 };
+        this.isDragging = false;
+    }
 
-    initialize() {
-        this.canvas = document.getElementById('game-canvas');
-        
-        window.addEventListener('keydown', (e) => { this.keys[e.code] = true; });
-        window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
-        
-        if (this.canvas) {
-            this.canvas.addEventListener('mousemove', (e) => {
-                const rect = this.canvas.getBoundingClientRect();
-                this.mouse.x = e.clientX - rect.left;
-                this.mouse.y = e.clientY - rect.top;
+    init() {
+        const canvas = document.getElementById('game-canvas');
+        if (!canvas) return;
+
+        // Detectar si es dispositivo táctil
+        this.isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        // Eventos de touch - SIN preventDefault global
+        canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+        canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+        canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
+
+        // Eventos de mouse
+        canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+        canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+        canvas.addEventListener('click', (e) => this.handleClick(e));
+
+        console.log('Input: Inicializado', { isTouch: this.isTouch });
+    }
+
+    handleTouchStart(e) {
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            this.startPos = Game.getCSSCoordinates(touch.clientX, touch.clientY);
+            this.currentPos = { ...this.startPos };
+            this.isDragging = false;
+            
+            EventBus.emit('input:touchStart', {
+                x: this.startPos.x,
+                y: this.startPos.y
             });
+        }
+    }
+
+    handleTouchMove(e) {
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            const pos = Game.getCSSCoordinates(touch.clientX, touch.clientY);
             
-            this.canvas.addEventListener('mousedown', (e) => {
-                if (e.button === 0) this.mouse.leftDown = true;
-                if (e.button === 2) this.mouse.rightDown = true;
+            // Detectar si es drag (movimiento > 10px)
+            const dx = pos.x - this.startPos.x;
+            const dy = pos.y - this.startPos.y;
+            if (Math.sqrt(dx * dx + dy * dy) > 10) {
+                this.isDragging = true;
+            }
+            
+            this.currentPos = pos;
+            
+            EventBus.emit('input:touchMove', {
+                x: pos.x,
+                y: pos.y,
+                deltaX: dx,
+                deltaY: dy
             });
-            
-            this.canvas.addEventListener('mouseup', (e) => {
-                if (e.button === 0) {
-                    this.mouse.leftDown = false;
-                    this.mouse.clicked = true;
-                }
-                if (e.button === 2) this.mouse.rightDown = false;
-            });
-            
-            this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-            this.canvas.addEventListener('click', () => setTimeout(() => { this.mouse.clicked = false; }, 100));
-            
-            this.canvas.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const rect = this.canvas.getBoundingClientRect();
-                const touch = e.touches[0];
-                this.mouse.x = touch.clientX - rect.left;
-                this.mouse.y = touch.clientY - rect.top;
-                this.mouse.leftDown = true;
-                this.mouse.clicked = true;
-            });
-            
-            this.canvas.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                const rect = this.canvas.getBoundingClientRect();
-                const touch = e.touches[0];
-                this.mouse.x = touch.clientX - rect.left;
-                this.mouse.y = touch.clientY - rect.top;
-            });
-            
-            this.canvas.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.mouse.leftDown = false;
-                setTimeout(() => { this.mouse.clicked = false; }, 100);
+        }
+    }
+
+    handleTouchEnd(e) {
+        if (!this.isDragging) {
+            // Es un tap/click
+            EventBus.emit('input:tap', {
+                x: this.startPos.x,
+                y: this.startPos.y
             });
         }
         
-        console.log('[Input] Sistema inicializado');
-    },
-
-    isKeyDown(code) { return this.keys[code] === true; },
-    isMouseDown() { return this.mouse.leftDown; },
-    getMousePosition() { return { x: this.mouse.x, y: this.mouse.y }; },
-    wasClicked() { return this.mouse.clicked; },
-
-    update(deltaTime) {
-        if (this.mouse.clicked) this.mouse.clicked = false;
+        EventBus.emit('input:touchEnd', {
+            x: this.currentPos.x,
+            y: this.currentPos.y
+        });
+        
+        this.isDragging = false;
     }
-};
 
-window.Input = Input;
+    handleMouseDown(e) {
+        this.startPos = Game.getCSSCoordinates(e.clientX, e.clientY);
+        this.currentPos = { ...this.startPos };
+        this.isDragging = false;
+        
+        EventBus.emit('input:mouseDown', {
+            x: this.startPos.x,
+            y: this.startPos.y
+        });
+    }
+
+    handleMouseMove(e) {
+        const pos = Game.getCSSCoordinates(e.clientX, e.clientY);
+        const dx = pos.x - this.startPos.x;
+        const dy = pos.y - this.startPos.y;
+        
+        if (Math.sqrt(dx * dx + dy * dy) > 10) {
+            this.isDragging = true;
+        }
+        
+        this.currentPos = pos;
+        
+        EventBus.emit('input:mouseMove', {
+            x: pos.x,
+            y: pos.y,
+            deltaX: dx,
+            deltaY: dy
+        });
+    }
+
+    handleMouseUp(e) {
+        if (!this.isDragging) {
+            EventBus.emit('input:click', {
+                x: this.startPos.x,
+                y: this.startPos.y
+            });
+        }
+        
+        EventBus.emit('input:mouseUp', {
+            x: this.currentPos.x,
+            y: this.currentPos.y
+        });
+        
+        this.isDragging = false;
+    }
+
+    handleClick(e) {
+        const pos = Game.getCSSCoordinates(e.clientX, e.clientY);
+        EventBus.emit('input:canvasClick', pos);
+    }
+
+    // Utilidad: obtener posición actual
+    getPosition() {
+        return { ...this.currentPos };
+    }
+
+    isDrag() {
+        return this.isDragging;
+    }
+}
+
+// Exportar instancia global
+window.Input = new InputClass();

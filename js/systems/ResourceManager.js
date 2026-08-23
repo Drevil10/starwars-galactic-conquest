@@ -1,93 +1,77 @@
-/**
- * ResourceManager.js
- * Sistema de gesti�n de recursos y producci�n
- */
+// js/systems/ResourceManager.js
+// Sistema de gestión de recursos - producción automática
 
-const ResourceManager = {
-    baseProduction: { credits: 0, materials: 0, energy: 0 },
-    modifiers: { credits: 1, materials: 1, energy: 1 },
-    productionTimer: 0,
-    productionInterval: 1,
-
-    initialize() {
-        console.log('[ResourceManager] Sistema inicializado');
-        EventBus.subscribe(Constants.EVENTS.BASE.BUILD, (data) => this.onBuildingBuilt(data));
-        EventBus.subscribe(Constants.EVENTS.BASE.UPGRADE, (data) => this.onBuildingUpgraded(data));
-    },
-
-    start() {
-        this.baseProduction = {
-            credits: Constants.BALANCE.RESOURCE_PRODUCTION.credits,
-            materials: Constants.BALANCE.RESOURCE_PRODUCTION.materials,
-            energy: Constants.BALANCE.RESOURCE_PRODUCTION.energy
-        };
-        this.updateProduction();
-    },
-
-    update(deltaTime) {
-        this.productionTimer += deltaTime;
-        if (this.productionTimer >= this.productionInterval) {
-            this.produce();
-            this.productionTimer = 0;
-        }
-    },
-
-    produce() {
-        const production = {
-            credits: this.baseProduction.credits * this.modifiers.credits,
-            materials: this.baseProduction.materials * this.modifiers.materials,
-            energy: this.baseProduction.energy * this.modifiers.energy
-        };
-        
-        GameState.modifyResource('credits', production.credits);
-        GameState.modifyResource('materials', production.materials);
-        GameState.modifyResource('energy', production.energy);
-        
-        EventBus.emit(Constants.EVENTS.UI.UPDATE_RESOURCES, {
-            credits: GameState.resources.credits,
-            materials: GameState.resources.materials,
-            energy: GameState.resources.energy
-        });
-    },
-
-    updateProduction() {
-        this.baseProduction = {
-            credits: Constants.BALANCE.RESOURCE_PRODUCTION.credits,
-            materials: Constants.BALANCE.RESOURCE_PRODUCTION.materials,
-            energy: Constants.BALANCE.RESOURCE_PRODUCTION.energy
-        };
-        
-        GameState.base.buildings.forEach(building => {
-            if (building.production) {
-                for (const [resource, amount] of Object.entries(building.production)) {
-                    if (this.baseProduction[resource] !== undefined) {
-                        this.baseProduction[resource] += amount;
-                    }
-                }
-            }
-        });
-        
-        GameState.production = { ...this.baseProduction };
-        console.log('[ResourceManager] Producci�n actualizada:', this.baseProduction);
-    },
-
-    onBuildingBuilt(data) { this.updateProduction(); },
-    onBuildingUpgraded(data) { this.updateProduction(); },
-    getResources() { return { ...GameState.resources }; },
-    getProduction() { return { ...this.baseProduction }; },
-    canAfford(costs) { return GameState.canAfford(costs); },
-    pay(costs) { return GameState.payCosts(costs); },
-
-    addResources(amounts) {
-        for (const [type, amount] of Object.entries(amounts)) {
-            if (amount > 0) GameState.modifyResource(type, amount);
-        }
-        EventBus.emit(Constants.EVENTS.UI.UPDATE_RESOURCES, {
-            credits: GameState.resources.credits,
-            materials: GameState.resources.materials,
-            energy: GameState.resources.energy
-        });
+class ResourceManagerClass {
+    constructor() {
+        this.productionTimers = new Map();
+        this.lastProductionTime = Date.now();
     }
-};
 
-window.ResourceManager = ResourceManager;
+    init() {
+        // Iniciar producción automática
+        this.startProduction();
+        console.log('ResourceManager: Producción iniciada');
+    }
+
+    startProduction() {
+        // Producción continua basada en tiempo
+        setInterval(() => {
+            this.produceResources();
+        }, 1000); // Cada segundo
+    }
+
+    produceResources() {
+        const now = Date.now();
+        const deltaTime = (now - this.lastProductionTime) / 1000;
+        
+        // Calcular producción basada en edificios
+        let creditsProd = Constants.PRODUCTION_RATES.credits;
+        let crystalsProd = Constants.PRODUCTION_RATES.crystals;
+        let energyProd = Constants.PRODUCTION_RATES.energy;
+
+        // Bonificación por edificios (ejemplo)
+        if (typeof Base !== 'undefined' && Base.buildings) {
+            Base.buildings.forEach(building => {
+                if (building.id === 'power-plant') {
+                    energyProd += 1;
+                } else if (building.id === 'mine') {
+                    crystalsProd += 0.5;
+                }
+            });
+        }
+
+        // Añadir recursos
+        GameState.addResources({
+            credits: creditsProd * deltaTime,
+            crystals: crystalsProd * deltaTime,
+            energy: energyProd * deltaTime
+        });
+
+        this.lastProductionTime = now;
+    }
+
+    getProductionRate() {
+        let creditsProd = Constants.PRODUCTION_RATES.credits;
+        let crystalsProd = Constants.PRODUCTION_RATES.crystals;
+        let energyProd = Constants.PRODUCTION_RATES.energy;
+
+        if (typeof Base !== 'undefined' && Base.buildings) {
+            Base.buildings.forEach(building => {
+                if (building.id === 'power-plant') {
+                    energyProd += 1;
+                } else if (building.id === 'mine') {
+                    crystalsProd += 0.5;
+                }
+            });
+        }
+
+        return {
+            credits: creditsProd,
+            crystals: crystalsProd,
+            energy: energyProd
+        };
+    }
+}
+
+// Exportar instancia global
+window.ResourceManager = new ResourceManagerClass();
