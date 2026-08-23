@@ -1,12 +1,11 @@
 // js/ui/Screens.js
-// Gestiona las pantallas principales y garantiza el acceso táctil al inicio.
+// Gestión de pantallas. main.js contiene una ruta de respaldo para el toque inicial.
 
 class ScreensClass {
     constructor() {
         this.currentScreen = null;
         this.screens = {};
         this.isTransitioning = false;
-        this.startHandler = null;
     }
 
     init() {
@@ -21,12 +20,7 @@ class ScreensClass {
             return false;
         }
 
-        this.startHandler = () => this.startAdventure();
-        startButton.addEventListener('click', this.startHandler);
-        startButton.addEventListener('pointerup', (event) => {
-            if (event.pointerType === 'touch') this.startAdventure();
-        });
-
+        startButton.addEventListener('click', () => this.startAdventure());
         this.showScreen('start');
         return true;
     }
@@ -37,9 +31,7 @@ class ScreensClass {
         this.showScreen('game');
 
         requestAnimationFrame(() => {
-            if (typeof Game !== 'undefined' && Game.resizeCanvas) {
-                Game.resizeCanvas();
-            }
+            if (window.Game && Game.resizeCanvas) Game.resizeCanvas();
             this.isTransitioning = false;
         });
     }
@@ -57,12 +49,12 @@ class ScreensClass {
         nextScreen.classList.add('active');
         this.currentScreen = screenName;
 
-        if (typeof GameState !== 'undefined') {
+        if (window.GameState) {
             GameState.setGameState(screenName === 'game' ? 'playing' : 'menu');
             if (screenName === 'game') GameState.setScreen('base');
         }
 
-        if (typeof EventBus !== 'undefined') {
+        if (window.EventBus) {
             EventBus.emit('screen:changed', { screen: screenName });
         }
     }
