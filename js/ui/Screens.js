@@ -1,5 +1,5 @@
 // js/ui/Screens.js
-// Gestión de pantallas. main.js contiene una ruta de respaldo para el toque inicial.
+// Gestión de inicio, partida y retorno seguro al menú.
 
 class ScreensClass {
     constructor() {
@@ -15,18 +15,26 @@ class ScreensClass {
         };
 
         const startButton = document.getElementById('start-btn');
+        const menuButton = document.getElementById('menu-btn');
+
         if (!startButton) {
             console.error('Screens: No se encontró #start-btn');
             return false;
         }
 
         startButton.addEventListener('click', () => this.startAdventure());
+
+        if (menuButton) {
+            menuButton.addEventListener('click', () => this.returnToMenu());
+        }
+
         this.showScreen('start');
         return true;
     }
 
     startAdventure() {
         if (this.isTransitioning || this.currentScreen === 'game') return;
+
         this.isTransitioning = true;
         this.showScreen('game');
 
@@ -34,6 +42,23 @@ class ScreensClass {
             if (window.Game && Game.resizeCanvas) Game.resizeCanvas();
             this.isTransitioning = false;
         });
+    }
+
+    returnToMenu() {
+        try {
+            if (window.GameState && typeof GameState.save === 'function') {
+                GameState.save();
+            }
+        } catch (error) {
+            console.error('Screens: No se pudo guardar antes de volver al menú', error);
+        }
+
+        const startButton = document.getElementById('start-btn');
+        if (startButton) {
+            startButton.textContent = 'Continuar aventura';
+        }
+
+        this.showScreen('start');
     }
 
     showScreen(screenName) {
