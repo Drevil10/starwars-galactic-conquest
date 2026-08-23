@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Wars: Galactic Conquest</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Pantalla de Inicio -->
+    <div id="start-screen" class="screen active">
+        <div class="start-content">
+            <h1 class="game-title">Star Wars</h1>
+            <h2 class="game-subtitle">Galactic Conquest</h2>
+            <button id="start-btn" class="btn-primary">Comenzar Aventura</button>
+            <button id="load-btn" class="btn-secondary">Cargar Partida</button>
+        </div>
+    </div>
+
+    <!-- Pantalla de Juego -->
+    <div id="game-screen" class="screen">
+        <!-- Área de Juego Principal -->
+        <div id="game-area">
+            <canvas id="game-canvas"></canvas>
+            
+            <!-- Overlay de información -->
+            <div id="game-overlay">
+                <div class="resource-bar">
+                    <span class="resource" id="resource-credits">
+                        <span class="resource-icon">₡</span>
+                        <span class="resource-value">0</span>
+                    </span>
+                    <span class="resource" id="resource-materials">
+                        <span class="resource-icon">◆</span>
+                        <span class="resource-value">0</span>
+                    </span>
+                    <span class="resource" id="resource-energy">
+                        <span class="resource-icon">⚡</span>
+                        <span class="resource-value">0</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegaci�n Inferior -->
+        <nav id="bottom-nav">
+            <button class="nav-btn active" data-tab="base">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Base</span>
+            </button>
+            <button class="nav-btn" data-tab="characters">
+                <span class="nav-icon">👥</span>
+                <span class="nav-label">Personajes</span>
+            </button>
+            <button class="nav-btn" data-tab="ships">
+                <span class="nav-icon">🚀</span>
+                <span class="nav-label">Naves</span>
+            </button>
+            <button class="nav-btn" data-tab="explore">
+                <span class="nav-icon">🌌</span>
+                <span class="nav-label">Explorar</span>
+            </button>
+            <button class="nav-btn" data-tab="missions">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Misiones</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/core/Constants.js"></script>
+    <script src="js/core/EventBus.js"></script>
+    <script src="js/core/GameState.js"></script>
+    <script src="js/core/Game.js"></script>
+    <script src="js/systems/Input.js"></script>
+    <script src="js/systems/Renderer.js"></script>
+    <script src="js/systems/SaveSystem.js"></script>
+    <script src="js/systems/ResourceManager.js"></script>
+    <script src="js/gameplay/Characters.js"></script>
+    <script src="js/gameplay/Ships.js"></script>
+    <script src="js/gameplay/Base.js"></script>
+    <script src="js/ui/Navigation.js"></script>
+    <script src="js/ui/Screens.js"></script>
+    <script src="js/ui/Components.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
