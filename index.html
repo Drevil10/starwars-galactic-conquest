@@ -1,49 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Star Wars: Galactic Conquest</title>
-  <link rel="stylesheet" href="css/styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Star Wars: Galactic Conquest</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <header class="app-header">
-    <h1>Star Wars: Galactic Conquest</h1>
-    <nav id="main-nav"></nav>
-  </header>
-
-  <main id="app"></main>
-
-  <!-- Modal de detalle del Archivo Galactico -->
-  <div id="archive-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="archive-modal-title" hidden>
-    <div class="modal-backdrop" data-close-modal></div>
-    <div class="modal-content">
-      <header class="modal-header">
-        <h2 id="archive-modal-title">Detalle del asset</h2>
-      </header>
-      <div class="modal-body">
-        <div class="archive-detail">
-          <div class="detail-preview" id="detail-preview"></div>
-          <dl class="detail-meta">
-            <dt>Nombre</dt>
-            <dd id="detail-name"></dd>
-            <dt>Categoria</dt>
-            <dd id="detail-category"></dd>
-            <dt>Ruta</dt>
-            <dd id="detail-path"></dd>
-          </dl>
+    <div id="app">
+        <div id="start-screen" class="screen active">
+            <h1>Star Wars: Galactic Conquest</h1>
+            <p class="subtitle">Explora la galaxia. Construye tu imperio.</p>
+            <button id="start-btn" class="primary-btn" type="button">Comenzar aventura</button>
         </div>
-      </div>
-      <footer class="modal-footer">
-        <button class="btn btn-primary" data-close-modal>Cerrar</button>
-      </footer>
-    </div>
-  </div>
 
-  <script src="js/ui/Components.js" type="module"></script>
-  <script src="js/ui/Navigation.js" type="module"></script>
-  <script src="js/ui/Screens.js" type="module"></script>
-  <script src="js/ui/Archive.js" type="module"></script>
-  <script src="js/main.js" type="module"></script>
+        <div id="game-screen" class="screen">
+            <header id="resources-header">
+                <div class="resource" id="resource-credits"><span class="resource-icon">💰</span><span class="resource-value">0</span></div>
+                <div class="resource" id="resource-crystals"><span class="resource-icon">💎</span><span class="resource-value">0</span></div>
+                <div class="resource" id="resource-energy"><span class="resource-icon">⚡</span><span class="resource-value">0</span></div>
+            </header>
+
+            <div id="game-area"><canvas id="game-canvas"></canvas></div>
+
+            <nav id="bottom-nav" aria-label="Navegacion principal">
+                <button class="nav-btn active" data-screen="base" type="button" aria-label="Base">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7v9H3v-9Z"/><path d="M9 20v-6h6v6"/></svg><span class="nav-label">Base</span>
+                </button>
+                <button class="nav-btn" data-screen="characters" type="button" aria-label="Personajes">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c.5-4 3-6 6-6s5.5 2 6 6M14 20c.2-2.8 1.8-4.5 4-5"/></svg><span class="nav-label">Heroes</span>
+                </button>
+                <button class="nav-btn" data-screen="ships" type="button" aria-label="Naves">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 14 7-3 5-7 2 6 4 2-6 2-5 6-1-5-6-1Z"/></svg><span class="nav-label">Naves</span>
+                </button>
+                <button class="nav-btn" data-screen="explore" type="button" aria-label="Explorar">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="m15 9-2 4-4 2 2-4 4-2ZM12 4v2M20 12h-2M12 20v-2M4 12h2"/></svg><span class="nav-label">Explorar</span>
+                </button>
+                <button class="nav-btn" data-screen="missions" type="button" aria-label="Misiones">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v17H7zM9 4V2h6v2M10 10h4M10 14h4M10 18h2"/></svg><span class="nav-label">Misiones</span>
+                </button>
+                <button id="menu-btn" class="nav-btn nav-menu-btn" type="button" aria-label="Menu">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="nav-label">Menu</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <script src="js/core/Constants.js"></script>
+    <script src="js/core/EventBus.js"></script>
+    <script src="js/core/GameState.js"></script>
+    <script src="js/core/Game.js"></script>
+    <script src="js/systems/ResourceManager.js"></script>
+    <script src="js/systems/Renderer.js"></script>
+    <script src="js/systems/Input.js"></script>
+    <script src="js/systems/SaveSystem.js"></script>
+    <script src="js/gameplay/Base.js"></script>
+    <script src="js/gameplay/Characters.js"></script>
+    <script src="js/gameplay/Ships.js"></script>
+    <script src="js/ui/Screens.js"></script>
+    <script src="js/ui/Navigation.js"></script>
+    <script src="js/ui/Components.js"></script>
+    <script src="js/ui/Archive.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,132 +1,76 @@
-import { createModal, closeModal } from "./Components.js";
-
-const CATEGORIES = [
-  { id: "all", label: "Todos" },
-  { id: "personajes", label: "Personajes" },
-  { id: "naves", label: "Naves" },
-  { id: "planetas", label: "Planetas" },
-  { id: "armas", label: "Armas" },
-  { id: "vehiculos", label: "Vehiculos" },
-  { id: "droides", label: "Droides" },
-  { id: "criaturas", label: "Criaturas" },
-];
-
-const ASSETS = [
-  { name: "Darth Vader", category: "personajes", path: "assets/svg/characters/darth_vader.svg" },
-  { name: "Luke Skywalker", category: "personajes", path: "assets/svg/characters/luke_skywalker.svg" },
-  { name: "X-Wing", category: "naves", path: "assets/svg/ships/xwing.svg" },
-  { name: "TIE Fighter", category: "naves", path: "assets/svg/ships/tie_fighter.svg" },
-  { name: "Death Star", category: "naves", path: "assets/svg/ships/death_star.svg" },
-  { name: "Tatooine", category: "planetas", path: "assets/svg/planets/tatooine.svg" },
-  { name: "Endor", category: "planetas", path: "assets/svg/planets/endor.svg" },
-  { name: "Lightsaber", category: "armas", path: "assets/svg/weapons/lightsaber.svg" },
-  { name: "Blaster", category: "armas", path: "assets/svg/weapons/blaster.svg" },
-  { name: "Speeder Bike", category: "vehiculos", path: "assets/svg/vehicles/speeder_bike.svg" },
-  { name: "AT-AT", category: "vehiculos", path: "assets/svg/vehicles/at_at.svg" },
-  { name: "R2-D2", category: "droides", path: "assets/svg/droids/r2d2.svg" },
-  { name: "C-3PO", category: "droides", path: "assets/svg/droids/c3po.svg" },
-  { name: "Wampa", category: "criaturas", path: "assets/svg/creatures/wampa.svg" },
-  { name: "Rancor", category: "criaturas", path: "assets/svg/creatures/rancor.svg" },
-];
-
-export function initArchiveScreen(app, modalEl) {
-  const gridEl = app.querySelector("#archive-grid");
-  const categoriesEl = app.querySelector("#archive-categories");
-  const searchInput = app.querySelector("#archive-search-input");
-
-  let activeCategory = "all";
-  let query = "";
-
-  function renderCategories() {
-    categoriesEl.innerHTML = "";
-    CATEGORIES.forEach((cat) => {
-      const chip = document.createElement("button");
-      chip.className = "category-chip" + (cat.id === activeCategory ? " active" : "");
-      chip.textContent = cat.label;
-      chip.addEventListener("click", () => {
-        activeCategory = cat.id;
-        renderCategories();
-        renderGrid();
-      });
-      categoriesEl.appendChild(chip);
-    });
-  }
-
-  function getPlaceholderSVG() {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", "80");
-    svg.setAttribute("height", "80");
-    svg.setAttribute("viewBox", "0 0 80 80");
-    svg.setAttribute("fill", "none");
-    svg.setAttribute("stroke", "#9aa4b2");
-    svg.setAttribute("stroke-width", "2");
-
-    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    circle.setAttribute("cx", "40");
-    circle.setAttribute("cy", "40");
-    circle.setAttribute("r", "28");
-    svg.appendChild(circle);
-
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", "M30 40l6 6 14-14");
-    svg.appendChild(path);
-
-    return svg;
-  }
-
-  function renderGrid() {
-    gridEl.innerHTML = "";
-    const filtered = ASSETS.filter((asset) => {
-      const matchCategory = activeCategory === "all" || asset.category === activeCategory;
-      const matchQuery = !query || asset.name.toLowerCase().includes(query.toLowerCase());
-      return matchCategory && matchQuery;
-    });
-
-    filtered.forEach((asset) => {
-      const card = document.createElement("article");
-      card.className = "archive-card";
-
-      const preview = document.createElement("div");
-      preview.className = "card-preview";
-      preview.appendChild(getPlaceholderSVG());
-
-      const body = document.createElement("div");
-      body.className = "card-body";
-
-      const title = document.createElement("h3");
-      title.className = "card-title";
-      title.textContent = asset.name;
-
-      const category = document.createElement("div");
-      category.className = "card-category";
-      category.textContent = CATEGORIES.find((c) => c.id === asset.category)?.label || asset.category;
-
-      body.append(title, category);
-      card.append(preview, body);
-
-      card.addEventListener("click", () => {
-        createModal(modalEl, {
-          title: "Detalle del asset",
-          previewNode: getPlaceholderSVG(),
-          name: asset.name,
-          category: CATEGORIES.find((c) => c.id === asset.category)?.label || asset.category,
-          path: asset.path,
+class ArchiveClass {
+    constructor() {
+        this.categories = [
+            { id: 'all', label: 'Todos' }, { id: 'characters', label: 'Personajes' }, { id: 'ships', label: 'Naves' },
+            { id: 'planets', label: 'Planetas' }, { id: 'weapons', label: 'Armas' }, { id: 'vehicles', label: 'Vehiculos' },
+            { id: 'droids', label: 'Droides' }, { id: 'creatures', label: 'Criaturas' }
+        ];
+        this.assets = [
+            { name: 'Darth Vader', category: 'characters', path: 'assets/svg/characters/darth_vader.svg' },
+            { name: 'Luke Skywalker', category: 'characters', path: 'assets/svg/characters/luke_skywalker.svg' },
+            { name: 'X-Wing', category: 'ships', path: 'assets/svg/ships/xwing.svg' },
+            { name: 'TIE Fighter', category: 'ships', path: 'assets/svg/ships/tie_fighter.svg' },
+            { name: 'Death Star', category: 'ships', path: 'assets/svg/ships/death_star.svg' },
+            { name: 'Tatooine', category: 'planets', path: 'assets/svg/planets/tatooine.svg' },
+            { name: 'Endor', category: 'planets', path: 'assets/svg/planets/endor.svg' },
+            { name: 'Lightsaber', category: 'weapons', path: 'assets/svg/weapons/lightsaber.svg' },
+            { name: 'Blaster', category: 'weapons', path: 'assets/svg/weapons/blaster.svg' },
+            { name: 'Speeder Bike', category: 'vehicles', path: 'assets/svg/vehicles/speeder_bike.svg' },
+            { name: 'AT-AT', category: 'vehicles', path: 'assets/svg/vehicles/at_at.svg' },
+            { name: 'R2-D2', category: 'droids', path: 'assets/svg/droids/r2d2.svg' },
+            { name: 'C-3PO', category: 'droids', path: 'assets/svg/droids/c3po.svg' },
+            { name: 'Wampa', category: 'creatures', path: 'assets/svg/creatures/wampa.svg' },
+            { name: 'Rancor', category: 'creatures', path: 'assets/svg/creatures/rancor.svg' }
+        ];
+        this.activeCategory = 'all';
+        this.query = '';
+    }
+    show() {
+        const area = document.getElementById('game-area');
+        if (!area) return;
+        area.querySelectorAll('.canvas-overlay').forEach((el) => el.remove());
+        this.panel = document.createElement('div');
+        this.panel.className = 'canvas-overlay';
+        this.panel.innerHTML = '<h3 class="archive-title">Archivo Galactico</h3><input id="archive-search" class="archive-search" type="search" placeholder="Buscar assets"><div id="archive-filters" class="archive-filters"></div><div id="archive-grid" class="archive-grid"></div><button id="close-archive" class="action-btn cancel" style="width:100%;margin-top:14px;">Cerrar</button>';
+        area.appendChild(this.panel);
+        this.panel.querySelector('#archive-search').addEventListener('input', (event) => { this.query = event.target.value; this.renderGrid(); });
+        this.panel.querySelector('#close-archive').addEventListener('click', () => { this.panel.remove(); if (window.Navigation) Navigation.switchTab('base'); });
+        this.renderFilters();
+        this.renderGrid();
+    }
+    renderFilters() {
+        const root = this.panel.querySelector('#archive-filters');
+        root.innerHTML = '';
+        this.categories.forEach((category) => {
+            const button = document.createElement('button');
+            button.className = 'archive-filter' + (category.id === this.activeCategory ? ' active' : '');
+            button.textContent = category.label;
+            button.addEventListener('click', () => { this.activeCategory = category.id; this.renderFilters(); this.renderGrid(); });
+            root.appendChild(button);
         });
-      });
-
-      gridEl.appendChild(card);
-    });
-  }
-
-  searchInput.addEventListener("input", (e) => {
-    query = e.target.value;
-    renderGrid();
-  });
-
-  modalEl.querySelectorAll("[data-close-modal]").forEach((btn) => {
-    btn.addEventListener("click", () => closeModal(modalEl));
-  });
-
-  renderCategories();
-  renderGrid();
+    }
+    renderGrid() {
+        const root = this.panel.querySelector('#archive-grid');
+        const needle = this.query.trim().toLowerCase();
+        const filtered = this.assets.filter((asset) => (this.activeCategory === 'all' || asset.category === this.activeCategory) && (!needle || asset.name.toLowerCase().includes(needle)));
+        root.innerHTML = '';
+        if (!filtered.length) { root.innerHTML = '<div class="archive-empty">No se encontraron assets.</div>'; return; }
+        filtered.forEach((asset) => {
+            const card = document.createElement('button');
+            card.className = 'archive-card';
+            const category = this.categories.find((item) => item.id === asset.category);
+            card.innerHTML = '<span class="archive-card-title"></span><span class="archive-card-category"></span>';
+            card.querySelector('.archive-card-title').textContent = asset.name;
+            card.querySelector('.archive-card-category').textContent = category ? category.label : asset.category;
+            card.addEventListener('click', () => this.showDetail(asset));
+            root.appendChild(card);
+        });
+    }
+    showDetail(asset) {
+        const category = this.categories.find((item) => item.id === asset.category);
+        this.panel.innerHTML = '<h3 class="archive-title">Detalle del asset</h3><div class="archive-detail"><div><strong>Nombre</strong><br>' + asset.name + '</div><div><strong>Categoria</strong><br>' + (category ? category.label : asset.category) + '</div><div><strong>Ruta</strong><br>' + asset.path + '</div></div><button id="back-archive" class="action-btn" style="width:100%;margin-top:14px;">Volver</button><button id="close-archive" class="action-btn cancel" style="width:100%;margin-top:8px;">Cerrar</button>';
+        this.panel.querySelector('#back-archive').addEventListener('click', () => this.show());
+        this.panel.querySelector('#close-archive').addEventListener('click', () => { this.panel.remove(); if (window.Navigation) Navigation.switchTab('base'); });
+    }
 }
+window.Archive = new ArchiveClass();
