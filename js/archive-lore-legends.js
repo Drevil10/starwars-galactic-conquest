@@ -23,5 +23,10 @@ Object.assign(characterLore, {
   'mace-windu': 'Mace Windu es un maestro Jedi, miembro del Consejo y guerrero letal. Su habilidad y liderazgo lo convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.',
   'padme-amidala': 'Padme Amidala es una reina y senadora de Naboo, madre de Luke y Leia. Su valentia y diplomacia la convierten en un simbolo de esperanza. Su muerte tras el nacimiento de sus hijos marca la tragedia de Anakin.',
   'anakin-skywalker-young': 'Anakin Skywalker joven es un esclavo en Tatooine, descubierto por Qui-Gon como el Elegido. Su poder y potencial lo convierten en un heroe. Su caida al lado oscuro lo transforma en Darth Vader.',
-  'grand-admiral-thrawn-detailed': 'Grand Admiral Thrawn es un estratega Imperial, maestro de la tactica y la cultura. Su inteligencia y habilidad lo convierten en una amenaza. Su papel en la guerra es clave, especialmente en las series.'
+  'grand-admiral-thrawn-detailed': 'Grand Admiral Thrawn es un estratega Imperial, maestro de la tactica y la cultura. Su inteligencia y habilidad lo convierten en una amenaza. Su papel en la guerra es clave, especialmente en las series.',
+  'jar-jar-binks': 'Jar Jar Binks es un Gungan de Naboo, companion de Qui-Gon y Obi-Wan. Su lealtad y torpeza lo convierten en un personaje unico. Su papel en la politica galactica es controversial.',
+  'watto': 'Watto es un mercader de esclavos en Tatooine, dueño de Anakin y Shmi. Su crueldad y astucia lo convierten en un villano. Su influencia en la infancia de Anakin es clave.',
+  'sebulba': 'Sebulba es un piloto de carreras en Tatooine, rival de Anakin. Su astucia y agresividad lo convierten en un antagonista. Su derrota en las carreras marca el inicio del destino de Anakin.',
+  'boss-nass': 'Boss Nass es un lider Gungan de Naboo, aliado de Qui-Gon y Obi-Wan. Su liderazgo y orgullo lo convierten en una figura clave. Su alianza con los humanos es crucial para la victoria en Naboo.',
+  'shmi-skywalker': 'Shmi Skywalker es la madre de Anakin, esclava en Tatooine. Su amor y sacrificio lo convierten en una figura tragica. Su muerte marca un punto de inflexion en la caida de Anakin.'
 });
