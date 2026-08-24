@@ -38,5 +38,10 @@ Object.assign(characterLore, {
   'asajj-ventress': 'Asajj Ventress es una Sith aprendiz de Dooku, cazadora de Jedi. Su odio y habilidad la convierten en una amenaza. Su redencion final la lleva a luchar contra el Imperio.',
   'savage-opress': 'Savage Opress es un guerrero Zabrak, hermano de Darth Maul y aprendiz de Dooku. Su fuerza y lealtad lo convierten en una amenaza. Su muerte en Mandalore marca el fin de su legado.',
   'captain-rex': 'Capitan Rex es un clone trooper, lider de la 501st y leal a Anakin y Ahsoka. Su valentia y lealtad lo convierten en un heroe. Su papel en la guerra es clave.',
-  'commander-cody': 'Comandante Cody es un clone trooper, lider de la 212th y leal a Obi-Wan. Su habilidad y lealtad lo convierten en un heroe. Su papel en la guerra es clave.'
+  'commander-cody': 'Comandante Cody es un clone trooper, lider de la 212th y leal a Obi-Wan. Su habilidad y lealtad lo convierten en un heroe. Su papel en la guerra es clave.',
+  'cad-bane': 'Cad Bane es un cazarrecompensas Duros, temido por su crueldad y habilidad. Su papel en las Guerras Clon lo convierte en una amenaza. Su muerte en Mandalore marca el fin de su legado.',
+  'embo': 'Embo es un cazarrecompensas Kyuzo, conocido por su habilidad con el disco y su honor. Su papel en las Guerras Clon lo convierte en un aliado clave. Su lealtad a la causa lo define.',
+  'aurra-sing': 'Aurra Sing es una cazarrecompensas y ex Jedi, conocida por su habilidad y crueldad. Su papel en las Guerras Clon la convierte en una amenaza. Su legado perdura en las sombras.',
+  'pre-vizsla': 'Pre Vizsla es un Mandaloriano, lider de Death Watch y enemigo de Darth Maul. Su habilidad y liderazgo lo convierten en una figura clave. Su muerte en Mandalore marca el fin de su legado.',
+  'bo-katan-kryze-detailed': 'Bo-Katan Kryze es una guerrera Mandaloriana, lider de Death Watch y luego de Mandalore. Su honor y habilidad la convierten en una figura clave. Su lucha por su pueblo la lleva a alianzas complejas y a la redencion.'
 });
