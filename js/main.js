@@ -1,21 +1,13 @@
-// Estado base
 const state = {
   energy: 100,
   credits: 50,
   minerals: 30,
   research: 10,
-  archiveUnlocked: true,
-  archiveEntries: [
-    { id: 'luke', type: 'personaje', title: 'Luke Skywalker', description: 'Jedi legendario que restauro el equilibrio en la Fuerza.', image: 'assets/characters/iconic/luke-skywalker.svg' },
-    { id: 'vader', type: 'personaje', title: 'Darth Vader', description: 'Senor Oscuro de los Sith y comandante supremo del Imperio.', image: 'assets/characters/iconic/darth-vader.svg' },
-    { id: 'tato', type: 'planeta', title: 'Tatooine', description: 'Planeta desertico en las Regiones Exteriores, hogar de Anakin y Luke.', image: 'assets/locations/tatooine.svg' },
-    { id: 'xwing', type: 'tecnologia', title: 'Caza X-wing', description: 'Nave de superioridad estelar usada por la Alianza Rebelde.', image: 'assets/ships/x-wing.svg' },
-    { id: 'deathstar', type: 'tecnologia', title: 'Estrella de la Muerte', description: 'Superarma orbital capaz de destruir planetas enteros.', image: 'assets/locations/death-star.svg' },
-    { id: 'yavin', type: 'evento', title: 'Batalla de Yavin', description: 'Asalto rebelde que destruyo la primera Estrella de la Muerte.', image: 'assets/locations/death-star-ii.svg' }
-  ]
+  archiveEntries: [],
+  archiveLoaded: false,
+  archiveLoading: null
 };
 
-// Elementos DOM
 const startScreen = document.getElementById('start-screen');
 const gameScreen = document.getElementById('game-screen');
 const startBtn = document.getElementById('start-btn');
@@ -37,7 +29,6 @@ const detailType = document.getElementById('detail-type');
 const detailDescription = document.getElementById('detail-description');
 const archiveBack = document.getElementById('archive-back');
 
-// Utilidades
 function updateResources() {
   energyRes.textContent = state.energy;
   creditsRes.textContent = state.credits;
@@ -51,25 +42,78 @@ function showScreen(screen) {
   screen.classList.add('active');
 }
 
-// Navegacion inferior
+function archiveType(path) {
+  if (path.startsWith('assets/characters/')) return 'personaje';
+  if (path.startsWith('assets/locations/')) return 'planeta';
+  if (path.startsWith('assets/effects/')) return 'evento';
+  return 'tecnologia';
+}
+
+function archiveTitle(path) {
+  return path
+    .split('/')
+    .pop()
+    .replace(/\.svg$/i, '')
+    .split('-')
+    .map(word => word ? word.charAt(0).toUpperCase() + word.slice(1) : word)
+    .join(' ');
+}
+
+async function loadArchiveEntries() {
+  if (state.archiveLoaded) return;
+  if (state.archiveLoading) return state.archiveLoading;
+
+  state.archiveLoading = fetch('https://api.github.com/repos/Drevil10/starwars-galactic-conquest/git/trees/main?recursive=1')
+    .then(response => {
+      if (!response.ok) throw new Error('No se pudo cargar el Archivo');
+      return response.json();
+    })
+    .then(data => {
+      state.archiveEntries = (data.tree || [])
+        .filter(item => item.type === 'blob' && item.path.startsWith('assets/') && item.path.endsWith('.svg'))
+        .map(item => {
+          const title = archiveTitle(item.path);
+          return {
+            id: item.path,
+            type: archiveType(item.path),
+            title,
+            description: `Entrada del Archivo: ${title}.`,
+            image: item.path
+          };
+        })
+        .sort((a, b) => a.title.localeCompare(b.title));
+      state.archiveLoaded = true;
+    })
+    .catch(() => {
+      state.archiveEntries = [];
+      state.archiveLoaded = true;
+    })
+    .finally(() => {
+      state.archiveLoading = null;
+    });
+
+  return state.archiveLoading;
+}
+
 navBtns.forEach(btn => {
   btn.addEventListener('click', () => {
-    navBtns.forEach(b => b.classList.remove('active'));
+    navBtns.forEach(item => item.classList.remove('active'));
     btn.classList.add('active');
-    const tab = btn.dataset.tab;
-    if (tab === 'archive') {
-      openArchive();
-    } else {
-      closeArchive();
-    }
+    if (btn.dataset.tab === 'archive') openArchive();
+    else closeArchive();
   });
 });
 
-// Archivo
-function openArchive() {
+async function openArchive() {
   archiveScreen.style.display = 'block';
   archiveList.style.display = 'block';
   archiveDetail.style.display = 'none';
+
+  if (!state.archiveLoaded) {
+    archiveGrid.innerHTML = '<div class="archive-empty">Cargando Archivo...</div>';
+    archiveEmpty.style.display = 'none';
+    await loadArchiveEntries();
+  }
   renderArchiveGrid();
 }
 
@@ -79,18 +123,16 @@ function closeArchive() {
 
 function renderArchiveGrid() {
   const query = (archiveSearch.value || '').toLowerCase().trim();
-  const activeFilter = archiveFilters.querySelector('.archive-filter.active').dataset.type;
-  const entries = state.archiveEntries.filter(e => {
-    const matchesType = activeFilter === 'all' || e.type === activeFilter;
-    const matchesQuery = !query || e.title.toLowerCase().includes(query) || e.description.toLowerCase().includes(query);
+  const activeButton = archiveFilters.querySelector('.archive-filter.active');
+  const activeFilter = activeButton ? activeButton.dataset.type : 'all';
+  const entries = state.archiveEntries.filter(entry => {
+    const matchesType = activeFilter === 'all' || entry.type === activeFilter;
+    const matchesQuery = !query || entry.title.toLowerCase().includes(query) || entry.description.toLowerCase().includes(query);
     return matchesType && matchesQuery;
   });
+
   archiveGrid.innerHTML = '';
-  if (entries.length === 0) {
-    archiveEmpty.style.display = 'block';
-    return;
-  }
-  archiveEmpty.style.display = 'none';
+  archiveEmpty.style.display = entries.length ? 'none' : 'block';
   entries.forEach(entry => {
     const card = document.createElement('button');
     card.className = 'archive-card';
@@ -122,21 +164,19 @@ archiveBack.addEventListener('click', () => {
 });
 
 archiveSearch.addEventListener('input', renderArchiveGrid);
-
-archiveFilters.addEventListener('click', (e) => {
-  if (!e.target.classList.contains('archive-filter')) return;
-  archiveFilters.querySelectorAll('.archive-filter').forEach(f => f.classList.remove('active'));
-  e.target.classList.add('active');
+archiveFilters.addEventListener('click', event => {
+  const button = event.target.closest('.archive-filter');
+  if (!button) return;
+  archiveFilters.querySelectorAll('.archive-filter').forEach(filter => filter.classList.remove('active'));
+  button.classList.add('active');
   renderArchiveGrid();
 });
 
-// Inicio
 startBtn.addEventListener('click', () => {
   showScreen(gameScreen);
   updateResources();
 });
 
-// Canvas placeholder
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 function resizeCanvas() {
@@ -144,7 +184,7 @@ function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
   canvas.width = rect.width * dpr;
   canvas.height = rect.height * dpr;
-  ctx.scale(dpr, dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
