@@ -59,6 +59,16 @@ function archiveTitle(path) {
     .join(' ');
 }
 
+function archiveDescription(title, type) {
+  const descriptions = {
+    personaje: `${title} es una figura registrada en los archivos galacticos. Su historia queda ligada a conflictos, alianzas y decisiones que marcaron su epoca. Consulta esta ficha para reconocer su lugar dentro de la galaxia.`,
+    planeta: `${title} es una localizacion de importancia dentro de la galaxia. Sus condiciones, habitantes y recursos han influido en rutas, batallas y operaciones de distintas facciones. Esta ficha conserva una referencia visual de su presencia en el conflicto.`,
+    evento: `${title} representa un suceso o efecto destacado en los registros galacticos. Su impacto modifica el curso de un enfrentamiento y deja consecuencias para quienes participan. El Archivo lo conserva como referencia tactica e historica.`,
+    tecnologia: `${title} forma parte del equipo, arsenal o infraestructura utilizada en la galaxia. Su diseno responde a necesidades de combate, transporte, defensa o supervivencia. Esta ficha permite identificarlo rapidamente y situarlo dentro del inventario galactico.`
+  };
+  return descriptions[type] || `${title} es una entrada registrada en el Archivo galactico. Esta ficha recoge una referencia visual y contextual para su consulta durante la partida.`;
+}
+
 async function loadArchiveEntries() {
   if (state.archiveLoaded) return;
   if (state.archiveLoading) return state.archiveLoading;
@@ -73,11 +83,12 @@ async function loadArchiveEntries() {
         .filter(item => item.type === 'blob' && item.path.startsWith('assets/') && item.path.endsWith('.svg'))
         .map(item => {
           const title = archiveTitle(item.path);
+          const type = archiveType(item.path);
           return {
             id: item.path,
-            type: archiveType(item.path),
+            type,
             title,
-            description: `Entrada del Archivo: ${title}.`,
+            description: archiveDescription(title, type),
             image: item.path
           };
         })
