@@ -43,5 +43,10 @@ Object.assign(characterLore, {
   'embo': 'Embo es un cazarrecompensas Kyuzo, conocido por su habilidad con el disco y su honor. Su papel en las Guerras Clon lo convierte en un aliado clave. Su lealtad a la causa lo define.',
   'aurra-sing': 'Aurra Sing es una cazarrecompensas y ex Jedi, conocida por su habilidad y crueldad. Su papel en las Guerras Clon la convierte en una amenaza. Su legado perdura en las sombras.',
   'pre-vizsla': 'Pre Vizsla es un Mandaloriano, lider de Death Watch y enemigo de Darth Maul. Su habilidad y liderazgo lo convierten en una figura clave. Su muerte en Mandalore marca el fin de su legado.',
-  'bo-katan-kryze-detailed': 'Bo-Katan Kryze es una guerrera Mandaloriana, lider de Death Watch y luego de Mandalore. Su honor y habilidad la convierten en una figura clave. Su lucha por su pueblo la lleva a alianzas complejas y a la redencion.'
+  'bo-katan-kryze-detailed': 'Bo-Katan Kryze es una guerrera Mandaloriana, lider de Death Watch y luego de Mandalore. Su honor y habilidad la convierten en una figura clave. Su lucha por su pueblo la lleva a alianzas complejas y a la redencion.',
+  'hondo-ohnaka-detailed': 'Hondo Ohnaka es un pirata Weequay, lider de la banda Ohnaka. Su astucia y lealtad lo convierten en un aliado clave. Su papel en la guerra es clave, especialmente en las series.',
+  'zuckuss': 'Zuckuss es un cazarrecompensas Gand, conocido por su habilidad de rastreo y su intuicion. Su papel en la guerra lo convierte en un aliado clave. Su lealtad a la causa lo define.',
+  'bossk': 'Bossk es un cazarrecompensas Trandoshan, conocido por su fuerza y su odio a los Wookiees. Su papel en la guerra lo convierte en un aliado clave. Su lealtad a la causa lo define.',
+  'dengar': 'Dengar es un cazarrecompensas humano, conocido por su habilidad y su lealtad a Boba Fett. Su papel en la guerra lo convierte en un aliado clave. Su lealtad a la causa lo define.',
+  '4-lom': '4-LOM es un droide cazarrecompensas, conocido por su habilidad y su lealtad a la causa. Su papel en la guerra lo convierte en un aliado clave. Su lealtad a la causa lo define.'
 });
