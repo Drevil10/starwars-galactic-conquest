@@ -1,0 +1,22 @@
+Object.assign(characterLore, {
+  'palpatine': 'Palpatine es el Emperador Sith, maestro de Darth Vader y arquitecto del Imperio Galactico. Su manipulo a la Galaxia desde las sombras, usando la politica y el lado oscuro para alcanzar el poder absoluto. Su caida final llega con la destruccion de la segunda Estrella de la Muerte.',
+  'darth-vader': 'Darth Vader es Anakin Skywalker, un Jedi caido al lado oscuro y mano derecha del Emperador. Su poder y tragedia lo convierten en una figura iconica. Su redencion final salva a su hijo Luke y destruye al Emperador.',
+  'luke-skywalker': 'Luke Skywalker es un Jedi, hijo de Anakin y heroe de la Alianza Rebelde. Su viaje lo lleva de granjero a maestro Jedi, clave en la destruccion del Imperio. Su legado inspira una nueva generacion de Jedi.',
+  'leia-organa': 'Leia Organa es una princesa de Alderaan, lider de la Alianza Rebelde y madre de Ben Solo. Su valentia y liderazgo la convierten en un simbolo de esperanza. Su papel en la guerra es crucial.',
+  'han-solo': 'Han Solo es un contrabandista, capitan del Millennium Falcon y heroe de la Alianza. Su astucia y lealtad lo convierten en un aliado clave. Su sacrificio inspira a la Resistencia.',
+  'chewbacca': 'Chewbacca es un Wookiee, copiloto del Millennium Falcon y leal amigo de Han Solo. Su fuerza y lealtad lo convierten en un heroe. Su papel en la guerra es clave.',
+  'yoda': 'Yoda es un maestro Jedi, lider del Consejo Jedi y maestro de generaciones. Su sabiduria y poder lo convierten en una figura legendaria. Su entrenamiento de Luke es clave para la caida del Imperio.',
+  'obi-wan-kenobi': 'Obi-Wan Kenobi es un maestro Jedi, maestro de Anakin y Luke. Su sabiduria y habilidad lo convierten en un heroe. Su papel en la guerra es clave.',
+  'count-dooku': 'Count Dooku es un Sith Lord, aprendiz de Palpatine y lider de la Confederacion de Sistemas Independientes. Su habilidad y traicion lo convierten en una amenaza. Su caida llega con la Orden 66.',
+  'darth-maul': 'Darth Maul es un Sith Lord, aprendiz de Palpatine y guerrero letal. Su odio y habilidad lo convierten en una amenaza. Su legado perdura en las sombras.',
+  'jango-fett': 'Jango Fett es un cazarrecompensas, modelo de los clones y padre de Boba. Su habilidad y lealtad lo convierten en una figura clave. Su muerte en Geonosis marca el inicio de las Guerras Clon.',
+  'boba-fett': 'Boba Fett es un cazarrecompensas, hijo de Jango y leyenda en la galaxia. Su habilidad y misterio lo convierten en una figura iconica. Su papel en la guerra es clave.',
+  'lando-calrissian': 'Lando Calrissian es un contrabandista, capitan del Millennium Falcon y heroe de la Alianza. Su astucia y lealtad lo convierten en un aliado clave. Su papel en la guerra es crucial.',
+  'c-3po': 'C-3PO es un droide de protocolo, leal a Leia y companion de R2-D2. Su habilidad y lealtad lo convierten en un aliado clave. Su papel en la guerra es clave.',
+  'r2-d2': 'R2-D2 es un droide astromecanico, leal a Anakin, Luke y la Alianza. Su habilidad y lealtad lo convierten en un heroe. Su papel en la guerra es clave.',
+  'bb-8': 'BB-8 es un droide astromecanico, leal a Poe y la Resistencia. Su habilidad y lealtad lo convierten en un aliado clave. Su papel en la guerra es crucial.',
+  'poe-dameron-detailed': 'Poe Dameron es un piloto de la Resistencia, valiente y leal. Su habilidad y liderazgo lo convierten en un heroe. Su papel en la guerra es clave.',
+  'kylo-ren-detailed': 'Kylo Ren es Ben Solo, un Jedi caido al lado oscuro, lider de la Primera Orden. Su conflicto interno y poder lo convierten en una figura tragica. Su redencion final ayuda a destruir a Palpatine.',
+  'rey-detailed': 'Rey es una joven sensible a la Fuerza que crece como chatarrera en Jakku. Su encuentro con Finn, BB-8 y Han Solo la arrastra a la lucha contra la Primera Orden. Descubre que es nieta de Palpatine, pero elige su propio camino como Jedi y ayuda a destruir definitivamente al Emperador.',
+  'finn-detailed': 'Finn es un Stormtrooper desertor que se une a la Resistencia junto a Rey y Poe. Su valentia y lealtad lo convierten en un heroe clave en la guerra contra la Primera Orden. Su viaje lo lleva a cuestionar su pasado y a luchar por la libertad.'
+});
