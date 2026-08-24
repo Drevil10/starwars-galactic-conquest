@@ -1,0 +1,22 @@
+Object.assign(characterLore, {
+  'batalla-de-yavin': 'La Batalla de Yavin es el asalto rebelde a la primera Estrella de la Muerte. Luke Skywalker destruye la estación con un torpedo de protones, marcando la primera gran victoria de la Alianza.',
+  'batalla-de-hoth': 'La Batalla de Hoth es el ataque imperial a la base rebelde Echo. Los rebeldes evacuan bajo el asedio de AT-ATs, permitiendo escapar a líderes clave como Leia y Han.',
+  'batalla-de-endor': 'La Batalla de Endor es el asalto rebelde a la segunda Estrella de la Muerte. La destruccin del generador de escudos y la muerte del Emperador marcan el fin del Imperio.',
+  'batalla-de-geonosis': 'La Batalla de Geonosis es el primer enfrentamiento de las Guerras Clon. Los Jedi y el nuevo ejército clon combaten a los separatistas, iniciando un conflicto galá¡¡ctico.',
+  'batalla-de-kashyyyk': 'La Batalla de Kashyyyk es un enfrentamiento clave en las Guerras Clon. Los clones y Jedi defienden el planeta Wookiee, pero la Orden 66 cambia el curso de la batalla.',
+  'batalla-de-utapau': 'La Batalla de Utapau es el enfrentamiento final de las Guerras Clon. Obi-Wan derrota a Grievous, pero la Orden 66 marca el fin de la República y el inicio del Imperio.',
+  'batalla-de-scarif': 'La Batalla de Scarif es la misión rebelde para robar los planos de la Estrella de la Muerte. Jyn Erso y Cassian Andor sacrifican sus vidas para enviar los datos a la Alianza.',
+  'batalla-de-jakku': 'La Batalla de Jakku es el enfrentamiento final entre la Nueva República y los restos del Imperio. La victoria republicana marca el fin de la Guerra Civil Galá¡¡ctica.',
+  'orden-66': 'La Orden 66 es la directiva imperial que ordena a los clones eliminar a los Jedi. La traicciclcion marca el fin de la Orden Jedi y el ascenso del Imperio Galá¡¡ctico.',
+  'guerras-clon': 'Las Guerras Clon son un conflicto galá¡¡ctico entre la República y los separatistas. Los ejé¡¡rcitos de clones y droides combaten en múltiples frentes, hasta la traicciclcion de la Orden 66.',
+  'guerra-civil-galactica': 'La Guerra Civil Galá¡¡ctica es el conflicto entre la Alianza Rebelde y el Imperio Galá¡¡ctico. La destruccin de las Estrellas de la Muerte y la muerte del Emperador marcan la victoria rebelde.',
+  'batalla-de-exegol': 'La Batalla de Exegol es el enfrentamiento final contra Palpatine y la flota Sith. La Resistencia, apoyada por la galaxia, destruye al Emperador y su flota de Estrellas de la Muerte.',
+  'asedio-de-mandalore': 'El Asedio de Mandalore es la batalla final entre Mandalorianos y la República. Ahsoka Tano y Bo-Katan Kryze capturan a Maul, pero la Orden 66 interrumpe la victoria.',
+  'batalla-de-naboo': 'La Batalla de Naboo es el enfrentamiento entre la República y los separatistas. Anakin destruye la nave de control de droides, liberando al planeta de la invasin.',
+  'batalla-de-coruscant': 'La Batalla de Coruscant es un enfrentamiento en las Guerras Clon. Los separatistas atacan la capital, pero los Jedi y clones defienden el planeta con éxito.',
+  'purga-jedi': 'La Purga Jedi es la caza y eliminacin de los Jedi tras la Orden 66. Darth Vader y los Inquisidores persiguen a los supervivientes, consolidando el poder del Imperio.',
+  'operacion-cinder': 'La Operacin Cinder es un plan imperial para arrasar planetas tras la muerte del Emperador. La destruccin busca castigar la debilidad imperial, pero es detenida por la Nueva República.',
+  'proyecto-renacer': 'El Proyecto Renacer es un programa secreto imperial para crear un nuevo ejército y flota. Su descubrimiento por la Nueva República marca el inicio de la caza de los restos imperiales.',
+  'batalla-de-crait': 'La Batalla de Crait es el asalto de la Primera Orden a la base rebelde. La Resistencia evacua gracias al sacrificio de Holdo y la accin de Poe y Finn.',
+  'batalla-de-starkiller-base': 'La Batalla de la Base Starkiller es el asalto rebelde a la superarma de la Primera Orden. Han Solo muere, pero la base es destruida, marcando una victoria clave.'
+});
