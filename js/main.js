@@ -1,199 +1,190 @@
-// Star Wars: Galactic Conquest - Main Game File
-// Este archivo maneja el bucle principal del juego, la UI y la lógica central
-
-// Importar datos del mapa
-import './data/map-data.js';
-
-// Importar sistemas core
-import './core/map-system.js';
-
-// Estado global del juego
-const GameState = {
-  currentScreen: 'start', // start, game, menu
-  selectedTab: 'map',
-  resources: {
-    energy: 0,
-    credits: 0,
-    minerals: 0,
-    research: 0
-  },
-  selectedFaction: null,
-  planets: [],
-  systems: []
+const state = {
+  energy: 100,
+  credits: 50,
+  minerals: 30,
+  research: 10,
+  archiveEntries: [],
+  archiveLoaded: false,
+  archiveLoading: null
 };
 
-// Elementos del DOM
-const elements = {
-  app: null,
-  startScreen: null,
-  gameScreen: null,
-  startBtn: null,
-  canvas: null,
-  resourcesHeader: null,
-  bottomNav: null,
-  archiveScreen: null
-};
+const startScreen = document.getElementById('start-screen');
+const gameScreen = document.getElementById('game-screen');
+const startBtn = document.getElementById('start-btn');
+const energyRes = document.getElementById('energy-res');
+const creditsRes = document.getElementById('credits-res');
+const mineralsRes = document.getElementById('minerals-res');
+const researchRes = document.getElementById('research-res');
+const navBtns = document.querySelectorAll('.nav-btn');
+const archiveScreen = document.getElementById('archive-screen');
+const archiveList = document.getElementById('archive-list');
+const archiveDetail = document.getElementById('archive-detail');
+const archiveGrid = document.getElementById('archive-grid');
+const archiveEmpty = document.getElementById('archive-empty');
+const archiveSearch = document.getElementById('archive-search');
+const archiveFilters = document.getElementById('archive-filters');
+const detailImage = document.getElementById('detail-image');
+const detailTitle = document.getElementById('detail-title');
+const detailType = document.getElementById('detail-type');
+const detailDescription = document.getElementById('detail-description');
+const archiveBack = document.getElementById('archive-back');
+const characterLore = {};
 
-// Inicializar el juego
-function initGame() {
-  // Cache de elementos del DOM
-  elements.app = document.getElementById('app');
-  elements.startScreen = document.getElementById('start-screen');
-  elements.gameScreen = document.getElementById('game-screen');
-  elements.startBtn = document.getElementById('start-btn');
-  elements.canvas = document.getElementById('game-canvas');
-  elements.resourcesHeader = document.getElementById('resources-header');
-  elements.bottomNav = document.getElementById('bottom-nav');
-  elements.archiveScreen = document.getElementById('archive-screen');
-
-  // Configurar eventos
-  elements.startBtn.addEventListener('click', startGame);
-  setupNavigation();
-  setupArchive();
-
-  // Inicializar sistemas
-  if (elements.canvas) {
-    MapSystem.init(elements.canvas);
-  }
-
-  // Iniciar bucle del juego
-  requestAnimationFrame(gameLoop);
+function updateResources() {
+  energyRes.textContent = state.energy;
+  creditsRes.textContent = state.credits;
+  mineralsRes.textContent = state.minerals;
+  researchRes.textContent = state.research;
 }
 
-// Iniciar una nueva partida
-function startGame() {
-  GameState.currentScreen = 'game';
-  elements.startScreen.classList.remove('active');
-  elements.gameScreen.classList.add('active');
-  
-  // Configurar canvas
-  if (elements.canvas) {
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-  }
-  
-  // Inicializar recursos iniciales
-  GameState.resources = {
-    energy: 100,
-    credits: 100,
-    minerals: 100,
-    research: 0
+function showScreen(screen) {
+  startScreen.classList.remove('active');
+  gameScreen.classList.remove('active');
+  screen.classList.add('active');
+}
+
+function archiveType(path) {
+  if (path.startsWith('assets/characters/')) return 'personaje';
+  if (path.startsWith('assets/locations/')) return 'planeta';
+  if (path.startsWith('assets/effects/')) return 'evento';
+  return 'tecnologia';
+}
+
+function archiveTitle(path) {
+  return path.split('/').pop().replace(/\.svg$/i, '').split('-').map(word => word ? word.charAt(0).toUpperCase() + word.slice(1) : word).join(' ');
+}
+
+function archiveDescription(title, type, path) {
+  const fileName = path.split('/').pop().replace(/\.svg$/i, '');
+  if (characterLore[fileName]) return characterLore[fileName];
+  const descriptions = {
+    personaje: `${title} es una figura registrada en los archivos galacticos. Su historia queda ligada a conflictos, alianzas y decisiones que marcaron su epoca.`,
+    planeta: `${title} es una localizacion de importancia dentro de la galaxia. Sus condiciones, habitantes y recursos han influido en rutas, batallas y operaciones de distintas facciones.`,
+    evento: `${title} representa un suceso destacado en los registros galacticos. Su impacto modifica el curso de un enfrentamiento y deja consecuencias para quienes participan.`,
+    tecnologia: `${title} forma parte del equipo, arsenal o infraestructura utilizada en la galaxia. Su diseno responde a necesidades de combate, transporte, defensa o supervivencia.`
   };
-  
-  updateResourcesUI();
+  return descriptions[type] || `${title} es una entrada registrada en el Archivo galactico.`;
 }
 
-// Ajustar tamaño del canvas
-function resizeCanvas() {
-  if (!elements.canvas) return;
-  
-  const canvas = elements.canvas;
-  const parent = canvas.parentElement;
-  
-  canvas.width = parent.clientWidth;
-  canvas.height = parent.clientHeight;
+async function loadArchiveEntries() {
+  if (state.archiveLoaded) return;
+  if (state.archiveLoading) return state.archiveLoading;
+  state.archiveLoading = fetch('https://api.github.com/repos/Drevil10/starwars-galactic-conquest/git/trees/main?recursive=1')
+    .then(response => {
+      if (!response.ok) throw new Error('No se pudo cargar el Archivo');
+      return response.json();
+    })
+    .then(data => {
+      state.archiveEntries = (data.tree || [])
+        .filter(item => item.type === 'blob' && item.path.startsWith('assets/') && item.path.endsWith('.svg'))
+        .map(item => {
+          const title = archiveTitle(item.path);
+          const type = archiveType(item.path);
+          return { id: item.path, type, title, description: archiveDescription(title, type, item.path), image: item.path };
+        })
+        .sort((a, b) => a.title.localeCompare(b.title));
+      state.archiveLoaded = true;
+    })
+    .catch(() => {
+      state.archiveEntries = [];
+      state.archiveLoaded = true;
+    })
+    .finally(() => { state.archiveLoading = null; });
+  return state.archiveLoading;
 }
 
-// Configurar navegación
-function setupNavigation() {
-  if (!elements.bottomNav) return;
-  
-  const navBtns = elements.bottomNav.querySelectorAll('.nav-btn:not(.nav-menu-btn)');
-  
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tab = btn.dataset.tab;
-      
-      // Actualizar UI
-      navBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      // Cambiar tab
-      GameState.selectedTab = tab;
-      
-      // Ocultar overlays
-      if (elements.archiveScreen) {
-        elements.archiveScreen.style.display = 'none';
-      }
-      
-      // Acción específica por tab
-      handleTabChange(tab);
-    });
+navBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    navBtns.forEach(item => item.classList.remove('active'));
+    btn.classList.add('active');
+    if (btn.dataset.tab === 'archive') openArchive();
+    else closeArchive();
+  });
+});
+
+async function openArchive() {
+  archiveScreen.style.display = 'block';
+  archiveList.style.display = 'block';
+  archiveDetail.style.display = 'none';
+  if (!state.archiveLoaded) {
+    archiveGrid.innerHTML = '<div class="archive-empty">Cargando Archivo...</div>';
+    archiveEmpty.style.display = 'none';
+    await loadArchiveEntries();
+  }
+  renderArchiveGrid();
+}
+
+function closeArchive() {
+  archiveScreen.style.display = 'none';
+}
+
+function renderArchiveGrid() {
+  const query = (archiveSearch.value || '').toLowerCase().trim();
+  const activeButton = archiveFilters.querySelector('.archive-filter.active');
+  const activeFilter = activeButton ? activeButton.dataset.type : 'all';
+  const entries = state.archiveEntries.filter(entry => {
+    const matchesType = activeFilter === 'all' || entry.type === activeFilter;
+    const matchesQuery = !query || entry.title.toLowerCase().includes(query) || entry.description.toLowerCase().includes(query);
+    return matchesType && matchesQuery;
+  });
+  archiveGrid.innerHTML = '';
+  archiveEmpty.style.display = entries.length ? 'none' : 'block';
+  entries.forEach(entry => {
+    const card = document.createElement('button');
+    card.className = 'archive-card';
+    card.innerHTML = `<img class="archive-card-image" src="${entry.image}" alt="" /><div class="archive-card-text"><span class="archive-card-title">${entry.title}</span><span class="archive-card-category">${entry.type}</span></div>`;
+    card.addEventListener('click', () => openArchiveDetail(entry));
+    archiveGrid.appendChild(card);
   });
 }
 
-// Manejar cambio de tab
-function handleTabChange(tab) {
-  switch(tab) {
-    case 'map':
-      // Volver al mapa
-      if (elements.archiveScreen) {
-        elements.archiveScreen.style.display = 'none';
-      }
-      break;
-    case 'archive':
-      // Mostrar archivo
-      if (elements.archiveScreen) {
-        elements.archiveScreen.style.display = 'flex';
-      }
-      break;
-    case 'build':
-    case 'research':
-    case 'military':
-      // TODO: Implementar
-      console.log(`Tab ${tab} no implementado aún`);
-      break;
-  }
+function openArchiveDetail(entry) {
+  archiveList.style.display = 'none';
+  archiveDetail.style.display = 'block';
+  detailImage.src = entry.image;
+  detailImage.alt = entry.title;
+  detailTitle.textContent = entry.title;
+  detailType.textContent = entry.type;
+  detailDescription.textContent = entry.description;
 }
 
-// Configurar archivo
-function setupArchive() {
-  // Esta función ya existe en archive-lore-original.js
-  // La llamamos si está disponible
-  if (typeof initArchive === 'function') {
-    initArchive();
-  }
-}
+archiveBack.addEventListener('click', () => {
+  archiveList.style.display = 'block';
+  archiveDetail.style.display = 'none';
+});
+archiveSearch.addEventListener('input', renderArchiveGrid);
+archiveFilters.addEventListener('click', event => {
+  const button = event.target.closest('.archive-filter');
+  if (!button) return;
+  archiveFilters.querySelectorAll('.archive-filter').forEach(filter => filter.classList.remove('active'));
+  button.classList.add('active');
+  renderArchiveGrid();
+});
 
-// Actualizar UI de recursos
-function updateResourcesUI() {
-  if (!elements.resourcesHeader) return;
-  
-  const energyEl = elements.resourcesHeader.querySelector('#energy-res');
-  const creditsEl = elements.resourcesHeader.querySelector('#credits-res');
-  const mineralsEl = elements.resourcesHeader.querySelector('#minerals-res');
-  const researchEl = elements.resourcesHeader.querySelector('#research-res');
-  
-  if (energyEl) energyEl.textContent = GameState.resources.energy;
-  if (creditsEl) creditsEl.textContent = GameState.resources.credits;
-  if (mineralsEl) mineralsEl.textContent = GameState.resources.minerals;
-  if (researchEl) researchEl.textContent = GameState.resources.research;
-}
+startBtn.addEventListener('click', () => {
+  showScreen(gameScreen);
+  updateResources();
+});
 
-// Bucle principal del juego
-function gameLoop() {
-  // Actualizar lógica
-  update();
-  
-  // Renderizar
-  render();
-  
-  // Siguiente frame
-  requestAnimationFrame(gameLoop);
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-// Actualizar estado del juego
-function update() {
-  // TODO: L lógica del juego (recursos, IA, etc.)
-}
-
-// Renderizar el juego
-function render() {
-  // Renderizar mapa si estamos en la tab de mapa
-  if (GameState.selectedTab === 'map' && MapSystem) {
-    MapSystem.render();
-  }
-}
-
-// Iniciar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', initGame);
+window.addEventListener('load', () => {
+  if (typeof MapSystem === 'undefined' || typeof galaxyMap === 'undefined') return;
+  MapSystem.init(canvas);
+  const renderMap = () => {
+    const mapButton = document.querySelector('.nav-btn[data-tab="map"]');
+    if (gameScreen.classList.contains('active') && mapButton && mapButton.classList.contains('active')) MapSystem.render();
+    window.requestAnimationFrame(renderMap);
+  };
+  window.requestAnimationFrame(renderMap);
+});
