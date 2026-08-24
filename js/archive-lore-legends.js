@@ -28,5 +28,10 @@ Object.assign(characterLore, {
   'watto': 'Watto es un mercader de esclavos en Tatooine, dueño de Anakin y Shmi. Su crueldad y astucia lo convierten en un villano. Su influencia en la infancia de Anakin es clave.',
   'sebulba': 'Sebulba es un piloto de carreras en Tatooine, rival de Anakin. Su astucia y agresividad lo convierten en un antagonista. Su derrota en las carreras marca el inicio del destino de Anakin.',
   'boss-nass': 'Boss Nass es un lider Gungan de Naboo, aliado de Qui-Gon y Obi-Wan. Su liderazgo y orgullo lo convierten en una figura clave. Su alianza con los humanos es crucial para la victoria en Naboo.',
-  'shmi-skywalker': 'Shmi Skywalker es la madre de Anakin, esclava en Tatooine. Su amor y sacrificio lo convierten en una figura tragica. Su muerte marca un punto de inflexion en la caida de Anakin.'
+  'shmi-skywalker': 'Shmi Skywalker es la madre de Anakin, esclava en Tatooine. Su amor y sacrificio lo convierten en una figura tragica. Su muerte marca un punto de inflexion en la caida de Anakin.',
+  'aayla-secura': 'Aayla Secura es una maestra Jedi Twi\'lek, miembro del Consejo Jedi. Su habilidad y valentia la convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.',
+  'kit-fisto': 'Kit Fisto es un maestro Jedi Nautolan, miembro del Consejo Jedi. Su habilidad y liderazgo lo convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.',
+  'plo-koon': 'Plo Koon es un maestro Jedi Kel Dor, miembro del Consejo Jedi. Su sabiduria y habilidad lo convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.',
+  'saesee-tiin': 'Saesee Tiin es un maestro Jedi Iktotchi, miembro del Consejo Jedi. Su habilidad y vision lo convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.',
+  'adi-gallia': 'Adi Gallia es una maestra Jedi Tholothiana, miembro del Consejo Jedi. Su sabiduria y habilidad la convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.'
 });
