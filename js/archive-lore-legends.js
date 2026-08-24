@@ -33,5 +33,10 @@ Object.assign(characterLore, {
   'kit-fisto': 'Kit Fisto es un maestro Jedi Nautolan, miembro del Consejo Jedi. Su habilidad y liderazgo lo convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.',
   'plo-koon': 'Plo Koon es un maestro Jedi Kel Dor, miembro del Consejo Jedi. Su sabiduria y habilidad lo convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.',
   'saesee-tiin': 'Saesee Tiin es un maestro Jedi Iktotchi, miembro del Consejo Jedi. Su habilidad y vision lo convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.',
-  'adi-gallia': 'Adi Gallia es una maestra Jedi Tholothiana, miembro del Consejo Jedi. Su sabiduria y habilidad la convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.'
+  'adi-gallia': 'Adi Gallia es una maestra Jedi Tholothiana, miembro del Consejo Jedi. Su sabiduria y habilidad la convierten en una figura clave. Su muerte en la Orden 66 marca la caida de la Republica.',
+  'general-grievous': 'General Grievous es un cyborg, lider de la Confederacion de Sistemas Independientes y enemigo de los Jedi. Su habilidad y crueldad lo convierten en una amenaza. Su muerte en Utapau marca el fin de las Guerras Clon.',
+  'asajj-ventress': 'Asajj Ventress es una Sith aprendiz de Dooku, cazadora de Jedi. Su odio y habilidad la convierten en una amenaza. Su redencion final la lleva a luchar contra el Imperio.',
+  'savage-opress': 'Savage Opress es un guerrero Zabrak, hermano de Darth Maul y aprendiz de Dooku. Su fuerza y lealtad lo convierten en una amenaza. Su muerte en Mandalore marca el fin de su legado.',
+  'captain-rex': 'Capitan Rex es un clone trooper, lider de la 501st y leal a Anakin y Ahsoka. Su valentia y lealtad lo convierten en un heroe. Su papel en la guerra es clave.',
+  'commander-cody': 'Comandante Cody es un clone trooper, lider de la 212th y leal a Obi-Wan. Su habilidad y lealtad lo convierten en un heroe. Su papel en la guerra es clave.'
 });
