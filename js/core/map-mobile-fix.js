@@ -1,14 +1,13 @@
-// Dispara el encuadre solo cuando el mapa ya es visible.
+// Recalcula el encuadre cuando el área del mapa ya es visible.
 (function () {
   function showMap() {
     const canvas = document.getElementById('game-canvas');
     if (!canvas || typeof MapSystem === 'undefined') return;
     requestAnimationFrame(() => requestAnimationFrame(() => {
       MapSystem.init(canvas);
-      MapSystem.resizeToViewport(true);
+      MapSystem.fitToViewport();
     }));
   }
-
   window.addEventListener('load', () => {
     const startButton = document.getElementById('start-btn');
     if (startButton) startButton.addEventListener('click', showMap);

@@ -1,230 +1,123 @@
-// Motor del mapa galáctico compatible con galaxyMap.
+// Motor del mapa galáctico compatible con galaxyMap y con el canvas DPR de main.js.
 const MapSystem = {
-  canvas: null,
-  ctx: null,
-  camera: { x: 0, y: 0, zoom: 1 },
-  selectedPlanet: null,
-  hoveredPlanet: null,
-  pointers: new Map(),
-  dragStart: null,
-  hasDragged: false,
-  interactionsBound: false,
-  lastViewport: { width: 0, height: 0 },
+  canvas: null, ctx: null, camera: { x: 0, y: 0, zoom: 1 }, selectedPlanet: null,
+  pointers: new Map(), dragging: false, interactionsBound: false, viewport: { width: 0, height: 0, dpr: 1 },
 
   init(canvas) {
     const target = canvas || document.getElementById('game-canvas');
     if (!target) return;
-    this.canvas = target;
-    this.ctx = target.getContext('2d');
-    if (!this.interactionsBound) this.setupInteractions();
+    this.canvas = target; this.ctx = target.getContext('2d');
+    if (!this.interactionsBound) this.bindInteractions();
   },
 
-  getPlanets() {
-    if (!window.galaxyMap || !Array.isArray(galaxyMap.systems)) return [];
-    return galaxyMap.systems.flatMap(system => system.planets || []);
+  planets() {
+    return window.galaxyMap && Array.isArray(galaxyMap.systems) ? galaxyMap.systems.flatMap(system => system.planets || []) : [];
   },
 
-  setupInteractions() {
-    if (!this.canvas) return;
-    this.interactionsBound = true;
-    this.canvas.style.touchAction = 'none';
-    this.canvas.addEventListener('pointerdown', event => this.handlePointerDown(event));
-    this.canvas.addEventListener('pointermove', event => this.handlePointerMove(event));
-    this.canvas.addEventListener('pointerup', event => this.handlePointerUp(event));
-    this.canvas.addEventListener('pointercancel', event => this.handlePointerUp(event));
-    this.canvas.addEventListener('wheel', event => this.handleWheel(event), { passive: false });
+  bindInteractions() {
+    this.interactionsBound = true; this.canvas.style.touchAction = 'none';
+    this.canvas.addEventListener('pointerdown', event => this.pointerDown(event));
+    this.canvas.addEventListener('pointermove', event => this.pointerMove(event));
+    this.canvas.addEventListener('pointerup', event => this.pointerUp(event));
+    this.canvas.addEventListener('pointercancel', event => this.pointerUp(event));
+    this.canvas.addEventListener('wheel', event => this.wheel(event), { passive: false });
   },
 
-  resizeToViewport(fit = true) {
-    if (!this.canvas || !this.ctx) return;
+  updateViewport() {
     const rect = this.canvas.getBoundingClientRect();
-    const width = Math.round(rect.width);
-    const height = Math.round(rect.height);
-    if (!width || !height) return;
-    if (this.canvas.width !== width || this.canvas.height !== height) {
-      this.canvas.width = width;
-      this.canvas.height = height;
-    }
-    this.lastViewport = { width, height };
-    if (fit) this.fitToContent();
-    else this.render();
+    if (!rect.width || !rect.height) return false;
+    this.viewport = { width: rect.width, height: rect.height, dpr: this.canvas.width / rect.width || window.devicePixelRatio || 1 };
+    return true;
   },
 
-  fitToContent() {
-    const planets = this.getPlanets();
-    const { width, height } = this.lastViewport;
-    if (!planets.length || !width || !height) return;
-    const xs = planets.map(planet => planet.position.x);
-    const ys = planets.map(planet => planet.position.y);
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys);
-    const padding = 54;
-    const worldWidth = Math.max(1, maxX - minX);
-    const worldHeight = Math.max(1, maxY - minY);
-    const zoom = Math.min((width - padding * 2) / worldWidth, (height - padding * 2) / worldHeight, 1);
+  fitToViewport() {
+    if (!this.canvas || !this.ctx || !this.updateViewport()) return;
+    const planets = this.planets(); if (!planets.length) return;
+    const xs = planets.map(planet => planet.position.x), ys = planets.map(planet => planet.position.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys), padding = 54;
+    const zoom = Math.min((this.viewport.width - padding * 2) / Math.max(1, maxX - minX), (this.viewport.height - padding * 2) / Math.max(1, maxY - minY), 1);
     this.camera.zoom = Math.max(0.28, zoom);
-    this.camera.x = width / 2 - ((minX + maxX) / 2) * this.camera.zoom;
-    this.camera.y = height / 2 - ((minY + maxY) / 2) * this.camera.zoom;
+    this.camera.x = this.viewport.width / 2 - ((minX + maxX) / 2) * this.camera.zoom;
+    this.camera.y = this.viewport.height / 2 - ((minY + maxY) / 2) * this.camera.zoom;
     this.render();
   },
 
-  screenToWorld(clientX, clientY) {
-    const rect = this.canvas.getBoundingClientRect();
-    return {
-      x: (clientX - rect.left - this.camera.x) / this.camera.zoom,
-      y: (clientY - rect.top - this.camera.y) / this.camera.zoom
-    };
+  clientPoint(clientX, clientY) {
+    const rect = this.canvas.getBoundingClientRect(); return { x: clientX - rect.left, y: clientY - rect.top };
   },
 
-  findPlanetAtPosition(x, y) {
-    return this.getPlanets().find(planet => Math.hypot(x - planet.position.x, y - planet.position.y) <= 22) || null;
+  worldPoint(clientX, clientY) {
+    const point = this.clientPoint(clientX, clientY); return { x: (point.x - this.camera.x) / this.camera.zoom, y: (point.y - this.camera.y) / this.camera.zoom };
   },
 
-  handlePointerDown(event) {
-    this.canvas.setPointerCapture(event.pointerId);
-    this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    this.dragStart = { x: event.clientX, y: event.clientY };
-    this.hasDragged = false;
+  pointerDown(event) {
+    this.canvas.setPointerCapture(event.pointerId); this.pointers.set(event.pointerId, this.clientPoint(event.clientX, event.clientY)); this.dragging = false;
   },
 
-  handlePointerMove(event) {
+  pointerMove(event) {
     if (!this.pointers.has(event.pointerId)) return;
-    const previous = this.pointers.get(event.pointerId);
-    this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    if (this.pointers.size === 1) {
-      const dx = event.clientX - previous.x;
-      const dy = event.clientY - previous.y;
-      if (Math.abs(dx) + Math.abs(dy) > 0) {
-        this.camera.x += dx;
-        this.camera.y += dy;
-        this.hasDragged = this.hasDragged || Math.hypot(event.clientX - this.dragStart.x, event.clientY - this.dragStart.y) > 8;
-        this.render();
-      }
-    } else if (this.pointers.size === 2) {
-      const points = [...this.pointers.values()];
-      const oldDistance = Math.hypot(previous.x - points[0].x, previous.y - points[0].y) || 1;
-      const newDistance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y) || 1;
-      this.zoomAt((points[0].x + points[1].x) / 2, (points[0].y + points[1].y) / 2, newDistance / oldDistance);
-      this.hasDragged = true;
+    const previous = this.pointers.get(event.pointerId), current = this.clientPoint(event.clientX, event.clientY);
+    this.pointers.set(event.pointerId, current);
+    const points = [...this.pointers.values()];
+    if (points.length === 1) {
+      const dx = current.x - previous.x, dy = current.y - previous.y;
+      if (dx || dy) { this.camera.x += dx; this.camera.y += dy; this.dragging = this.dragging || Math.hypot(dx, dy) > 2; this.render(); }
+    } else if (points.length === 2) {
+      const other = points.find(point => point !== current);
+      const oldDistance = Math.hypot(previous.x - other.x, previous.y - other.y) || 1;
+      const newDistance = Math.hypot(current.x - other.x, current.y - other.y) || 1;
+      this.zoomAt({ x: (current.x + other.x) / 2, y: (current.y + other.y) / 2 }, newDistance / oldDistance); this.dragging = true;
     }
   },
 
-  handlePointerUp(event) {
+  pointerUp(event) {
     if (!this.pointers.has(event.pointerId)) return;
-    if (!this.hasDragged && this.pointers.size === 1) {
-      const point = this.screenToWorld(event.clientX, event.clientY);
-      this.selectedPlanet = this.findPlanetAtPosition(point.x, point.y);
-      this.render();
+    if (!this.dragging && this.pointers.size === 1) {
+      const point = this.worldPoint(event.clientX, event.clientY);
+      this.selectedPlanet = this.planets().find(planet => Math.hypot(point.x - planet.position.x, point.y - planet.position.y) <= 22) || null; this.render();
     }
-    this.pointers.delete(event.pointerId);
-    if (this.canvas.hasPointerCapture(event.pointerId)) this.canvas.releasePointerCapture(event.pointerId);
+    this.pointers.delete(event.pointerId); if (this.canvas.hasPointerCapture(event.pointerId)) this.canvas.releasePointerCapture(event.pointerId);
   },
 
-  handleWheel(event) {
-    event.preventDefault();
-    this.zoomAt(event.clientX, event.clientY, event.deltaY < 0 ? 1.12 : 0.88);
-  },
+  wheel(event) { event.preventDefault(); this.zoomAt(this.clientPoint(event.clientX, event.clientY), event.deltaY < 0 ? 1.12 : 0.88); },
 
-  zoomAt(clientX, clientY, factor) {
-    const before = this.screenToWorld(clientX, clientY);
+  zoomAt(point, factor) {
+    const worldX = (point.x - this.camera.x) / this.camera.zoom, worldY = (point.y - this.camera.y) / this.camera.zoom;
     this.camera.zoom = Math.max(0.28, Math.min(3, this.camera.zoom * factor));
-    const rect = this.canvas.getBoundingClientRect();
-    this.camera.x = clientX - rect.left - before.x * this.camera.zoom;
-    this.camera.y = clientY - rect.top - before.y * this.camera.zoom;
-    this.render();
+    this.camera.x = point.x - worldX * this.camera.zoom; this.camera.y = point.y - worldY * this.camera.zoom; this.render();
   },
 
   render() {
-    if (!this.ctx || !this.canvas) return;
-    const ctx = this.ctx;
-    const width = this.canvas.width;
-    const height = this.canvas.height;
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = '#000011';
-    ctx.fillRect(0, 0, width, height);
-    ctx.save();
-    ctx.translate(this.camera.x, this.camera.y);
-    ctx.scale(this.camera.zoom, this.camera.zoom);
-    this.drawRoutes();
-    this.drawPlanets();
-    ctx.restore();
-    if (this.selectedPlanet) this.drawPlanetInfo(this.selectedPlanet);
+    if (!this.ctx || !this.canvas || !this.updateViewport()) return;
+    const ctx = this.ctx, { width, height, dpr } = this.viewport;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = '#000011'; ctx.fillRect(0, 0, width, height);
+    ctx.save(); ctx.translate(this.camera.x, this.camera.y); ctx.scale(this.camera.zoom, this.camera.zoom); this.drawRoutes(ctx); this.drawPlanets(ctx); ctx.restore();
+    if (this.selectedPlanet) this.drawPlanetInfo(ctx, this.selectedPlanet);
   },
 
-  drawRoutes() {
-    const ctx = this.ctx;
-    const drawnRoutes = new Set();
-    for (const planet of this.getPlanets()) {
-      for (const routeTarget of planet.routes || []) {
-        const routeKey = [planet.id, routeTarget].sort().join('-');
-        if (drawnRoutes.has(routeKey)) continue;
-        drawnRoutes.add(routeKey);
-        const target = this.findPlanetById(routeTarget);
-        if (!target) continue;
-        ctx.beginPath();
-        ctx.moveTo(planet.position.x, planet.position.y);
-        ctx.lineTo(target.position.x, target.position.y);
-        ctx.strokeStyle = '#333355';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
+  drawRoutes(ctx) {
+    const seen = new Set(), planets = this.planets();
+    for (const planet of planets) for (const targetId of planet.routes || []) {
+      const key = [planet.id, targetId].sort().join('-'); if (seen.has(key)) continue; seen.add(key);
+      const target = planets.find(candidate => candidate.id === targetId); if (!target) continue;
+      ctx.beginPath(); ctx.moveTo(planet.position.x, planet.position.y); ctx.lineTo(target.position.x, target.position.y); ctx.strokeStyle = '#333355'; ctx.lineWidth = 2; ctx.stroke();
     }
   },
 
-  drawPlanets() {
-    const ctx = this.ctx;
-    for (const planet of this.getPlanets()) {
-      const faction = galaxyMap.factions[planet.owner];
-      ctx.beginPath();
-      ctx.arc(planet.position.x, planet.position.y, 15, 0, Math.PI * 2);
-      ctx.fillStyle = faction ? faction.color : '#666666';
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(planet.name, planet.position.x, planet.position.y - 20);
-      if (this.hoveredPlanet === planet) {
-        ctx.beginPath();
-        ctx.arc(planet.position.x, planet.position.y, 20, 0, Math.PI * 2);
-        ctx.strokeStyle = '#ffff00';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-      }
+  drawPlanets(ctx) {
+    for (const planet of this.planets()) {
+      const faction = galaxyMap.factions[planet.owner]; ctx.beginPath(); ctx.arc(planet.position.x, planet.position.y, 15, 0, Math.PI * 2);
+      ctx.fillStyle = faction ? faction.color : '#666666'; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#ffffff'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText(planet.name, planet.position.x, planet.position.y - 20);
     }
   },
 
-  drawPlanetInfo(planet) {
-    const ctx = this.ctx;
-    const faction = galaxyMap.factions[planet.owner];
-    const panelX = 16;
-    const panelY = 16;
-    const panelWidth = Math.min(250, this.canvas.width - 32);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.82)';
-    ctx.fillRect(panelX, panelY, panelWidth, 180);
-    ctx.strokeStyle = faction ? faction.color : '#666666';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(panelX, panelY, panelWidth, 180);
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'left';
-    ctx.font = 'bold 16px Arial';
-    ctx.fillText(planet.name, panelX + 10, panelY + 25);
-    ctx.font = '12px Arial';
-    ctx.fillText(`Tipo: ${planet.type}`, panelX + 10, panelY + 50);
-    ctx.fillText(`Dueño: ${faction ? faction.name : 'Desconocido'}`, panelX + 10, panelY + 70);
-    ctx.fillText('Recursos:', panelX + 10, panelY + 95);
-    ctx.fillText(`Créditos: ${planet.resources.credits}`, panelX + 20, panelY + 115);
-    ctx.fillText(`Minerales: ${planet.resources.minerals}`, panelX + 20, panelY + 135);
-    ctx.fillText(`Energía: ${planet.resources.energy}`, panelX + 20, panelY + 155);
-  },
-
-  findPlanetById(id) {
-    return this.getPlanets().find(planet => planet.id === id) || null;
+  drawPlanetInfo(ctx, planet) {
+    const faction = galaxyMap.factions[planet.owner], panelWidth = Math.min(250, this.viewport.width - 32);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.82)'; ctx.fillRect(16, 16, panelWidth, 180); ctx.strokeStyle = faction ? faction.color : '#666666'; ctx.lineWidth = 2; ctx.strokeRect(16, 16, panelWidth, 180);
+    ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.font = 'bold 16px Arial'; ctx.fillText(planet.name, 26, 41); ctx.font = '12px Arial';
+    ctx.fillText(`Tipo: ${planet.type}`, 26, 66); ctx.fillText(`Dueño: ${faction ? faction.name : 'Desconocido'}`, 26, 86); ctx.fillText('Recursos:', 26, 111);
+    ctx.fillText(`Créditos: ${planet.resources.credits}`, 36, 131); ctx.fillText(`Minerales: ${planet.resources.minerals}`, 36, 151); ctx.fillText(`Energía: ${planet.resources.energy}`, 36, 171);
   }
 };
-
 window.MapSystem = MapSystem;
