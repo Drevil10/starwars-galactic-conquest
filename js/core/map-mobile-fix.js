@@ -1,8 +1,9 @@
-// Dimensiona el buffer del canvas solamente cuando ya es visible.
+// Sincroniza los datos globales y dimensiona el canvas cuando ya es visible.
 (function () {
   function showMap() {
     const canvas = document.getElementById('game-canvas');
     if (!canvas || typeof MapSystem === 'undefined') return;
+    if (typeof galaxyMap !== 'undefined') window.galaxyMap = galaxyMap;
     requestAnimationFrame(() => requestAnimationFrame(() => {
       const rect = canvas.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
