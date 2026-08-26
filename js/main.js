@@ -23,6 +23,8 @@ const turnInfoEl = document.getElementById('turn-info');
 const nextTurnBtn = document.getElementById('next-turn-btn');
 
 const navBtns = document.querySelectorAll('.nav-btn');
+
+// Archivo
 const archiveScreen = document.getElementById('archive-screen');
 const archiveList = document.getElementById('archive-list');
 const archiveDetail = document.getElementById('archive-detail');
@@ -36,6 +38,19 @@ const detailType = document.getElementById('detail-type');
 const detailDescription = document.getElementById('detail-description');
 const archiveBack = document.getElementById('archive-back');
 const characterLore = {};
+
+// Nuevos paneles: Construir, Investigar, Militar
+const buildScreen = document.getElementById('build-screen');
+const buildGrid = document.getElementById('build-grid');
+const buildBack = document.getElementById('build-back');
+
+const researchScreen = document.getElementById('research-screen');
+const researchGrid = document.getElementById('research-grid');
+const researchBack = document.getElementById('research-back');
+
+const militaryScreen = document.getElementById('military-screen');
+const militaryGrid = document.getElementById('military-grid');
+const militaryBack = document.getElementById('military-back');
 
 // Sincronizar estado local con GameState.
 function syncFromGameState() {
@@ -57,7 +72,6 @@ function updateResources() {
   if (mineralsRes) mineralsRes.textContent = Math.floor(state.minerals);
   if (researchRes) researchRes.textContent = Math.floor(state.research);
 
-  // Actualizar información de turno si existe.
   if (typeof TurnSystem !== 'undefined' && typeof TurnSystem.getTurnInfo === 'function') {
     const info = TurnSystem.getTurnInfo();
 
@@ -72,6 +86,15 @@ function showScreen(screen) {
   gameScreen.classList.remove('active');
   screen.classList.add('active');
 }
+
+function closeAllOverlays() {
+  if (archiveScreen) archiveScreen.style.display = 'none';
+  if (buildScreen) buildScreen.style.display = 'none';
+  if (researchScreen) researchScreen.style.display = 'none';
+  if (militaryScreen) militaryScreen.style.display = 'none';
+}
+
+// ==================== ARCHIVO ====================
 
 function archiveType(path) {
   if (path.startsWith('assets/characters/')) return 'personaje';
@@ -144,37 +167,33 @@ async function loadArchiveEntries() {
   return state.archiveLoading;
 }
 
-navBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    navBtns.forEach(item => item.classList.remove('active'));
-    btn.classList.add('active');
+function openArchive() {
+  closeAllOverlays();
 
-    if (btn.dataset.tab === 'archive') openArchive();
-    else closeArchive();
-  });
-});
+  if (archiveScreen) {
+    archiveScreen.style.display = 'block';
+    archiveList.style.display = 'block';
+    archiveDetail.style.display = 'none';
 
-async function openArchive() {
-  archiveScreen.style.display = 'block';
-  archiveList.style.display = 'block';
-  archiveDetail.style.display = 'none';
-
-  if (!state.archiveLoaded) {
-    archiveGrid.innerHTML = '<div class="archive-empty">Cargando Archivo...</div>';
-    archiveEmpty.style.display = 'none';
-    await loadArchiveEntries();
+    if (!state.archiveLoaded) {
+      archiveGrid.innerHTML = '<div class="archive-empty">Cargando Archivo...</div>';
+      archiveEmpty.style.display = 'none';
+      loadArchiveEntries().then(renderArchiveGrid);
+    } else {
+      renderArchiveGrid();
+    }
   }
-
-  renderArchiveGrid();
 }
 
 function closeArchive() {
-  archiveScreen.style.display = 'none';
+  if (archiveScreen) archiveScreen.style.display = 'none';
 }
 
 function renderArchiveGrid() {
-  const query = (archiveSearch.value || '').toLowerCase().trim();
-  const activeButton = archiveFilters.querySelector('.archive-filter.active');
+  if (!archiveGrid) return;
+
+  const query = (archiveSearch?.value || '').toLowerCase().trim();
+  const activeButton = archiveFilters?.querySelector('.archive-filter.active');
   const activeFilter = activeButton ? activeButton.dataset.type : 'all';
 
   const entries = state.archiveEntries.filter(entry => {
@@ -188,7 +207,10 @@ function renderArchiveGrid() {
   });
 
   archiveGrid.innerHTML = '';
-  archiveEmpty.style.display = entries.length ? 'none' : 'block';
+
+  if (archiveEmpty) {
+    archiveEmpty.style.display = entries.length ? 'none' : 'block';
+  }
 
   entries.forEach(entry => {
     const card = document.createElement('button');
@@ -207,37 +229,184 @@ function renderArchiveGrid() {
 }
 
 function openArchiveDetail(entry) {
+  if (!archiveList || !archiveDetail) return;
+
   archiveList.style.display = 'none';
   archiveDetail.style.display = 'block';
 
-  detailImage.src = entry.image;
-  detailImage.alt = entry.title;
-  detailTitle.textContent = entry.title;
-  detailType.textContent = entry.type;
-  detailDescription.textContent = entry.description;
+  if (detailImage) {
+    detailImage.src = entry.image;
+    detailImage.alt = entry.title;
+  }
+
+  if (detailTitle) detailTitle.textContent = entry.title;
+  if (detailType) detailType.textContent = entry.type;
+  if (detailDescription) detailDescription.textContent = entry.description;
 }
 
-archiveBack.addEventListener('click', () => {
-  archiveList.style.display = 'block';
-  archiveDetail.style.display = 'none';
+// ==================== CONSTRUIR ====================
+
+function openBuild() {
+  closeAllOverlays();
+
+  if (!buildScreen || !buildGrid) return;
+
+  buildScreen.style.display = 'block';
+
+  if (typeof BuildingData === 'undefined' || !BuildingData.getBuildings) {
+    buildGrid.innerHTML = '<div class="empty-panel">No hay edificios disponibles aun.</div>';
+    return;
+  }
+
+  const buildings = BuildingData.getBuildings();
+
+  if (!buildings || buildings.length === 0) {
+    buildGrid.innerHTML = '<div class="empty-panel">No hay edificios disponibles aun.</div>';
+    return;
+  }
+
+  buildGrid.innerHTML = '';
+
+  buildings.forEach(building => {
+    const card = document.createElement('button');
+    card.className = 'archive-card';
+
+    const costText = [];
+    if (building.cost?.credits) costText.push(`🪙 ${building.cost.credits}`);
+    if (building.cost?.minerals) costText.push(`⛏️ ${building.cost.minerals}`);
+    if (building.cost?.energy) costText.push(`⚡ ${building.cost.energy}`);
+    if (building.cost?.research) costText.push(`🧪 ${building.cost.research}`);
+
+    card.innerHTML =
+      `<div class="archive-card-text">` +
+      `<span class="archive-card-title">${building.name}</span>` +
+      `<span class="archive-card-category">${building.type || 'Edificio'}</span>` +
+      `<span class="archive-card-description">${building.description || ''}</span>` +
+      `<span class="archive-card-cost">${costText.join(' ') || 'Sin coste'}</span>` +
+      `</div>`;
+
+    card.addEventListener('click', () => {
+      if (typeof GameState === 'undefined') return;
+
+      if (!GameState.canAfford(building.cost || {})) {
+        alert('No tienes suficientes recursos para construir este edificio.');
+        return;
+      }
+
+      const confirmed = confirm(`¿Construir ${building.name}?\n\nCoste: ${costText.join(' ') || 'Sin coste'}`);
+
+      if (!confirmed) return;
+
+      GameState.spendResources(building.cost || {});
+      syncFromGameState();
+
+      alert(`${building.name} construido con exito.`);
+    });
+
+    buildGrid.appendChild(card);
+  });
+}
+
+function closeBuild() {
+  if (buildScreen) buildScreen.style.display = 'none';
+}
+
+// ==================== INVESTIGAR ====================
+
+function openResearch() {
+  closeAllOverlays();
+
+  if (!researchScreen || !researchGrid) return;
+
+  researchScreen.style.display = 'block';
+  researchGrid.innerHTML = '<div class="empty-panel">Tecnologias disponibles (proximamente).</div>';
+}
+
+function closeResearch() {
+  if (researchScreen) researchScreen.style.display = 'none';
+}
+
+// ==================== MILITAR ====================
+
+function openMilitary() {
+  closeAllOverlays();
+
+  if (!militaryScreen || !militaryGrid) return;
+
+  militaryScreen.style.display = 'block';
+  militaryGrid.innerHTML = '<div class="empty-panel">Flotas y naves (proximamente).</div>';
+}
+
+function closeMilitary() {
+  if (militaryScreen) militaryScreen.style.display = 'none';
+}
+
+// ==================== EVENTOS DE NAVEGACION ====================
+
+navBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    navBtns.forEach(item => item.classList.remove('active'));
+    btn.classList.add('active');
+
+    const tab = btn.dataset.tab;
+
+    if (tab === 'archive') {
+      openArchive();
+    } else if (tab === 'build') {
+      openBuild();
+    } else if (tab === 'research') {
+      openResearch();
+    } else if (tab === 'military') {
+      openMilitary();
+    } else if (tab === 'menu') {
+      // Aquí podrias abrir un menú de opciones más adelante.
+      alert('Menu (proximamente)');
+    } else {
+      closeAllOverlays();
+    }
+  });
 });
 
-archiveSearch.addEventListener('input', renderArchiveGrid);
+// Botones de volver de cada panel
+if (archiveBack) {
+  archiveBack.addEventListener('click', () => {
+    archiveList.style.display = 'block';
+    archiveDetail.style.display = 'none';
+  });
+}
 
-archiveFilters.addEventListener('click', event => {
-  const button = event.target.closest('.archive-filter');
+if (buildBack) {
+  buildBack.addEventListener('click', closeBuild);
+}
 
-  if (!button) return;
+if (researchBack) {
+  researchBack.addEventListener('click', closeResearch);
+}
 
-  archiveFilters
-    .querySelectorAll('.archive-filter')
-    .forEach(filter => filter.classList.remove('active'));
+if (militaryBack) {
+  militaryBack.addEventListener('click', closeMilitary);
+}
 
-  button.classList.add('active');
-  renderArchiveGrid();
-});
+if (archiveSearch) {
+  archiveSearch.addEventListener('input', renderArchiveGrid);
+}
 
-// Botón “Siguiente turno”.
+if (archiveFilters) {
+  archiveFilters.addEventListener('click', event => {
+    const button = event.target.closest('.archive-filter');
+
+    if (!button) return;
+
+    archiveFilters
+      .querySelectorAll('.archive-filter')
+      .forEach(filter => filter.classList.remove('active'));
+
+    button.classList.add('active');
+    renderArchiveGrid();
+  });
+}
+
+// Botón "Siguiente turno".
 function onNextTurn() {
   if (typeof TurnSystem === 'undefined' || typeof TurnSystem.nextTurn !== 'function') {
     console.warn('TurnSystem no está disponible para avanzar turno.');
@@ -253,13 +422,10 @@ function onNextTurn() {
 
 startBtn.addEventListener('click', () => {
   showScreen(gameScreen);
-
-  // Sincronizar recursos desde GameState al entrar en partida.
   syncFromGameState();
   updateResources();
 });
 
-// Conectar botón de turno si existe en el HTML.
 if (nextTurnBtn) {
   nextTurnBtn.addEventListener('click', onNextTurn);
 }
