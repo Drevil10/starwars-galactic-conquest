@@ -1,69 +1,115 @@
 // js/core/GameState.js
-// Estado centralizado del juego
+// Estado centralizado del juego.
 
 class GameStateClass {
     constructor() {
-        this.state = {
-            credits: Constants.INITIAL_RESOURCES.credits,
-            crystals: Constants.INITIAL_RESOURCES.crystals,
-            energy: Constants.INITIAL_RESOURCES.energy,
+        this.state = this.createInitialState();
+        this.listeners = new Map();
+    }
+
+    createInitialState() {
+        return {
+            credits: Constants.INITIAL_RESOURCES.credits ?? 100,
+            minerals: Constants.INITIAL_RESOURCES.minerals ?? 50,
+            energy: Constants.INITIAL_RESOURCES.energy ?? 100,
+            research: Constants.INITIAL_RESOURCES.research ?? 10,
+
+            turn: 1,
+            selectedFaction: null,
+            controlledPlanets: [],
+            fleets: [],
+            buildings: {},
+            researchedTech: [],
+            activeEvents: [],
+
+            projects: {
+                deathStar: {
+                    unlocked: false,
+                    progress: 0,
+                    completed: false
+                }
+            },
+
             screen: Constants.SCREENS.START,
             gameState: Constants.STATES.MENU,
             startTime: Date.now(),
             lastSaveTime: Date.now()
         };
-        
-        this.listeners = new Map();
     }
 
     init() {
-        // Cargar estado guardado
         const saved = SaveSystem.load('gameState');
+
         if (saved) {
-            this.state = { ...this.state, ...saved };
+            this.state = {
+                ...this.createInitialState(),
+                ...saved,
+                projects: {
+                    ...this.createInitialState().projects,
+                    ...(saved.projects || {})
+                }
+            };
+
             console.log('GameState: Estado cargado', this.state);
         }
-        
-        // Iniciar auto-guardado
+
+        this.updateResourceUI();
+
         if (Constants.GAME.AUTO_SAVE) {
             setInterval(() => this.autoSave(), Constants.GAME.SAVE_INTERVAL);
         }
     }
 
     getState() {
-        return { ...this.state };
+        return {
+            ...this.state,
+            controlledPlanets: [...this.state.controlledPlanets],
+            fleets: [...this.state.fleets],
+            buildings: { ...this.state.buildings },
+            researchedTech: [...this.state.researchedTech],
+            activeEvents: [...this.state.activeEvents],
+            projects: { ...this.state.projects }
+        };
     }
 
     setState(newState) {
-        const oldState = { ...this.state };
-        this.state = { ...this.state, ...newState };
-        
-        // Notificar cambios
+        const oldState = this.getState();
+
+        this.state = {
+            ...this.state,
+            ...newState
+        };
+
         Object.keys(newState).forEach(key => {
-            this.emit(`change:${key}`, { 
-                key, 
-                oldValue: oldState[key], 
-                newValue: this.state[key] 
+            this.emit(`change:${key}`, {
+                key,
+                oldValue: oldState[key],
+                newValue: this.state[key]
             });
         });
-        
-        this.emit('change', { oldState, newState: this.state });
+
+        this.emit('change', {
+            oldState,
+            newState: this.getState()
+        });
     }
 
     subscribe(event, callback) {
         if (!this.listeners.has(event)) {
             this.listeners.set(event, []);
         }
+
         this.listeners.get(event).push(callback);
-        
+
         return () => this.unsubscribe(event, callback);
     }
 
     unsubscribe(event, callback) {
         if (!this.listeners.has(event)) return;
-        
+
         const callbacks = this.listeners.get(event);
         const index = callbacks.indexOf(callback);
+
         if (index !== -1) {
             callbacks.splice(index, 1);
         }
@@ -71,7 +117,7 @@ class GameStateClass {
 
     emit(event, data) {
         if (!this.listeners.has(event)) return;
-        
+
         this.listeners.get(event).forEach(callback => {
             try {
                 callback(data);
@@ -81,67 +127,72 @@ class GameStateClass {
         });
     }
 
-    // Recursos
     getResources() {
         return {
             credits: this.state.credits,
-            crystals: this.state.crystals,
-            energy: this.state.energy
+            minerals: this.state.minerals,
+            energy: this.state.energy,
+            research: this.state.research
         };
     }
 
     addResources(changes) {
-        const newResources = { ...this.state };
-        
-        if (changes.credits !== undefined) {
-            newResources.credits = Math.max(0, Math.min(
-                Constants.RESOURCE_LIMITS.credits,
-                this.state.credits + changes.credits
-            ));
-        }
-        
-        if (changes.crystals !== undefined) {
-            newResources.crystals = Math.max(0, Math.min(
-                Constants.RESOURCE_LIMITS.crystals,
-                this.state.crystals + changes.crystals
-            ));
-        }
-        
-        if (changes.energy !== undefined) {
-            newResources.energy = Math.max(0, Math.min(
-                Constants.RESOURCE_LIMITS.energy,
-                this.state.energy + changes.energy
-            ));
-        }
-        
-        this.setState(newResources);
-        
-        // Actualizar UI
+        const limits = Constants.RESOURCE_LIMITS || {};
+        const nextState = {};
+
+        ['credits', 'minerals', 'energy', 'research'].forEach(resource => {
+            if (changes[resource] === undefined) return;
+
+            const limit = limits[resource] ?? Number.MAX_SAFE_INTEGER;
+            const current = this.state[resource] ?? 0;
+
+            nextState[resource] = Math.max(
+                0,
+                Math.min(limit, current + changes[resource])
+            );
+        });
+
+        this.setState(nextState);
         this.updateResourceUI();
     }
 
     setResource(resource, value) {
-        if (Constants.RESOURCES[resource.toUpperCase()] === undefined) {
+        const allowedResources = ['credits', 'minerals', 'energy', 'research'];
+
+        if (!allowedResources.includes(resource)) {
             console.warn('GameState: Recurso inválido', resource);
             return;
         }
-        
-        const cappedValue = Math.max(0, Math.min(
-            Constants.RESOURCE_LIMITS[resource],
-            value
-        ));
-        
+
+        const limit = Constants.RESOURCE_LIMITS?.[resource] ?? Number.MAX_SAFE_INTEGER;
+        const cappedValue = Math.max(0, Math.min(limit, value));
+
         this.setState({ [resource]: cappedValue });
         this.updateResourceUI();
     }
 
-    canAfford(cost) {
+    canAfford(cost = {}) {
         return this.state.credits >= (cost.credits || 0) &&
-               this.state.crystals >= (cost.crystals || 0) &&
-               this.state.energy >= (cost.energy || 0);
+            this.state.minerals >= (cost.minerals || 0) &&
+            this.state.energy >= (cost.energy || 0) &&
+            this.state.research >= (cost.research || 0);
     }
 
-    // Pantallas
+    spendResources(cost = {}) {
+        if (!this.canAfford(cost)) {
+            return false;
+        }
+
+        this.addResources({
+            credits: -(cost.credits || 0),
+            minerals: -(cost.minerals || 0),
+            energy: -(cost.energy || 0),
+            research: -(cost.research || 0)
+        });
+
+        return true;
+    }
+
     getCurrentScreen() {
         return this.state.screen;
     }
@@ -151,11 +202,10 @@ class GameStateClass {
             console.warn('GameState: Pantalla inválida', screen);
             return;
         }
-        
+
         this.setState({ screen });
     }
 
-    // Estado del juego
     getGameState() {
         return this.state.gameState;
     }
@@ -165,51 +215,67 @@ class GameStateClass {
             console.warn('GameState: Estado inválido', gameState);
             return;
         }
-        
+
         this.setState({ gameState });
     }
 
-    // UI
-    updateResourceUI() {
-        const creditsEl = document.querySelector('#resource-credits .resource-value');
-        const crystalsEl = document.querySelector('#resource-crystals .resource-value');
-        const energyEl = document.querySelector('#resource-energy .resource-value');
-        
-        if (creditsEl) creditsEl.textContent = Math.floor(this.state.credits);
-        if (crystalsEl) crystalsEl.textContent = Math.floor(this.state.crystals);
-        if (energyEl) energyEl.textContent = Math.floor(this.state.energy);
+    setFaction(faction) {
+        this.setState({ selectedFaction: faction });
     }
 
-    // Auto-guardado
+    setControlledPlanets(planets) {
+        this.setState({ controlledPlanets: [...new Set(planets)] });
+    }
+
+    addControlledPlanet(planetId) {
+        if (this.state.controlledPlanets.includes(planetId)) return;
+
+        this.setState({
+            controlledPlanets: [...this.state.controlledPlanets, planetId]
+        });
+    }
+
+    removeControlledPlanet(planetId) {
+        this.setState({
+            controlledPlanets: this.state.controlledPlanets.filter(
+                id => id !== planetId
+            )
+        });
+    }
+
+    updateResourceUI() {
+        const creditsEl = document.getElementById('credits-res');
+        const mineralsEl = document.getElementById('minerals-res');
+        const energyEl = document.getElementById('energy-res');
+        const researchEl = document.getElementById('research-res');
+
+        if (creditsEl) creditsEl.textContent = Math.floor(this.state.credits);
+        if (mineralsEl) mineralsEl.textContent = Math.floor(this.state.minerals);
+        if (energyEl) energyEl.textContent = Math.floor(this.state.energy);
+        if (researchEl) researchEl.textContent = Math.floor(this.state.research);
+    }
+
     autoSave() {
-        SaveSystem.save('gameState', this.state);
         this.state.lastSaveTime = Date.now();
+        SaveSystem.save('gameState', this.state);
         console.log('GameState: Auto-guardado completado');
     }
 
-    // Guardado manual
     save() {
+        this.state.lastSaveTime = Date.now();
         SaveSystem.save('gameState', this.state);
         console.log('GameState: Guardado manual completado');
     }
 
-    // Reset
     reset() {
-        this.state = {
-            credits: Constants.INITIAL_RESOURCES.credits,
-            crystals: Constants.INITIAL_RESOURCES.crystals,
-            energy: Constants.INITIAL_RESOURCES.energy,
-            screen: Constants.SCREENS.START,
-            gameState: Constants.STATES.MENU,
-            startTime: Date.now(),
-            lastSaveTime: Date.now()
-        };
-        
+        this.state = this.createInitialState();
         SaveSystem.clear('gameState');
         this.updateResourceUI();
+
+        this.emit('reset', this.getState());
         console.log('GameState: Reset completado');
     }
 }
 
-// Exportar instancia global
+// Exportar instancia global.
 window.GameState = new GameStateClass();
