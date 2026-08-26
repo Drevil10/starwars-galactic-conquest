@@ -41,6 +41,7 @@
       <main id="game-area">
         <canvas id="game-canvas"></canvas>
 
+        <!-- Archivo -->
         <div id="archive-screen" class="canvas-overlay" style="display:none;">
           <div id="archive-list" class="archive-panel">
             <h2 class="archive-title">Archivo</h2>
@@ -62,6 +63,33 @@
             <div id="detail-type" class="archive-detail-type"></div>
             <p id="detail-description" class="archive-detail-description"></p>
             <button id="archive-back" class="action-btn archive-back-button">Volver</button>
+          </div>
+        </div>
+
+        <!-- Construir -->
+        <div id="build-screen" class="canvas-overlay" style="display:none;">
+          <div class="archive-panel">
+            <h2 class="archive-title">Construir</h2>
+            <div id="build-grid" class="archive-grid"></div>
+            <button id="build-back" class="action-btn archive-back-button">Volver</button>
+          </div>
+        </div>
+
+        <!-- Investigar -->
+        <div id="research-screen" class="canvas-overlay" style="display:none;">
+          <div class="archive-panel">
+            <h2 class="archive-title">Investigar</h2>
+            <div id="research-grid" class="archive-grid"></div>
+            <button id="research-back" class="action-btn archive-back-button">Volver</button>
+          </div>
+        </div>
+
+        <!-- Militar -->
+        <div id="military-screen" class="canvas-overlay" style="display:none;">
+          <div class="archive-panel">
+            <h2 class="archive-title">Militar</h2>
+            <div id="military-grid" class="archive-grid"></div>
+            <button id="military-back" class="action-btn archive-back-button">Volver</button>
           </div>
         </div>
       </main>
@@ -107,3 +135,27 @@
   <!-- Datos -->
   <script src="js/data/PlanetData.js"></script>
   <script src="js/data/BuildingData.js"></script>
+
+  <!-- Sistemas -->
+  <script src="js/core/TurnSystem.js"></script>
+  <script src="js/core/Game.js"></script>
+
+  <!-- UI y lógica principal -->
+  <script src="js/main.js"></script>
+  <script src="js/archive-lore-original.js"></script>
+  <script src="js/archive-lore-sequel.js"></script>
+  <script src="js/archive-lore-legends.js"></script>
+  <script src="js/archive-lore-expanded.js"></script>
+  <script src="js/archive-lore-faction.js"></script>
+  <script src="js/archive-lore-extras.js"></script>
+  <script src="js/archive-lore-tech.js"></script>
+  <script src="js/archive-lore-planets.js"></script>
+  <script src="js/archive-lore-events.js"></script>
+
+  <!-- Mapa -->
+  <script src="js/data/map-data.js"></script>
+  <script src="js/data/map-expansion.js"></script>
+  <script src="js/core/map-system.js"></script>
+  <script src="js/core/map-mobile-fix.js"></script>
+</body>
+</html>
