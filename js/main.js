@@ -1,5 +1,5 @@
 // js/main.js
-// Inicio de aplicación, navegación, Archivo y conexión de interfaz con el estado.
+// Inicio de aplicación, selección de facción, navegación, Archivo y turnos.
 
 const characterLore = {};
 
@@ -295,20 +295,42 @@ function openMilitary() {
   }
 }
 
-// ==================== PARTIDA Y TURNOS ====================
+// ==================== CAMPAÑA Y TURNOS ====================
 
-function startGame() {
+function openFactionSelection() {
+  if (
+    typeof FactionSelectionUI === 'undefined' ||
+    typeof FactionSelectionUI.show !== 'function'
+  ) {
+    console.error(
+      'main.js: FactionSelectionUI no está disponible.'
+    );
+
+    return;
+  }
+
+  FactionSelectionUI.show({
+    onSelect: campaign => {
+      startCampaign(campaign);
+    }
+  });
+}
+
+function startCampaign(campaign) {
+  if (!campaign || !campaign.success) {
+    console.error(
+      'main.js: No se pudo crear la campaña.',
+      campaign
+    );
+
+    return;
+  }
+
   if (startScreen) startScreen.classList.remove('active');
   if (gameScreen) gameScreen.classList.add('active');
 
   closeAllOverlays();
   setActiveTab('map');
-
-  if (typeof GameState !== 'undefined') {
-    GameState.setScreen('map');
-    GameState.setGameState('playing');
-  }
-
   updateResourceUI();
 
   setTimeout(() => {
@@ -322,10 +344,22 @@ function startGame() {
     renderMap();
   }, 50);
 
-  console.log('main.js: Partida iniciada.');
+  console.log(
+    `main.js: Campaña iniciada como ${campaign.faction.name}.`,
+    campaign
+  );
 }
 
 function advanceTurn() {
+  if (
+    typeof CampaignSystem !== 'undefined' &&
+    typeof CampaignSystem.hasActiveCampaign === 'function' &&
+    !CampaignSystem.hasActiveCampaign()
+  ) {
+    alert('Primero debes iniciar una campaña y elegir una facción.');
+    return;
+  }
+
   if (
     typeof TurnSystem === 'undefined' ||
     typeof TurnSystem.nextTurn !== 'function'
@@ -350,7 +384,7 @@ function advanceTurn() {
 // ==================== EVENTOS DE INTERFAZ ====================
 
 if (startBtn) {
-  startBtn.addEventListener('click', startGame);
+  startBtn.addEventListener('click', openFactionSelection);
 } else {
   console.error('main.js: No se encontró el botón #start-btn.');
 }
@@ -467,6 +501,13 @@ window.addEventListener('load', () => {
       typeof TurnSystem.init === 'function'
     ) {
       TurnSystem.init();
+    }
+
+    if (
+      typeof CampaignSystem !== 'undefined' &&
+      typeof CampaignSystem.init === 'function'
+    ) {
+      CampaignSystem.init();
     }
 
     if (
