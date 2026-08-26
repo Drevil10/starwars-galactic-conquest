@@ -12,6 +12,8 @@
       <h1>Star Wars<br />Galactic Conquest</h1>
       <p class="subtitle">Conquista la galaxia como el Imperio Galactico o la Alianza Rebelde</p>
       <button id="start-btn" class="primary-btn" type="button">Comenzar</button>
+
+      <div id="faction-selection" class="faction-selection-overlay" style="display:none;"></div>
     </div>
 
     <div id="game-screen" class="screen">
@@ -178,16 +180,17 @@
     </div>
   </div>
 
-  <!-- Constantes y datos del mapa -->
+  <!-- Constantes y datos -->
   <script src="js/core/Constants.js"></script>
   <script src="js/data/map-data.js"></script>
   <script src="js/data/map-expansion.js"></script>
+  <script src="js/data/factions-data.js"></script>
 
-  <!-- Sistemas activos -->
+  <!-- Sistemas de juego -->
   <script src="js/core/GameState.js"></script>
+  <script src="js/core/TurnSystem.js"></script>
   <script src="js/gameplay/CampaignSystem.js"></script>
   <script src="js/ui/FactionSelectionUI.js"></script>
-  <script src="js/core/TurnSystem.js"></script>
   <script src="js/core/map-system.js"></script>
   <script src="js/core/map-mobile-fix.js"></script>
 
