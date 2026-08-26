@@ -1,4 +1,4 @@
-// Primera expansión de sistemas galácticos. No modifica los sistemas base.
+// Primera expansión de sistemas galácticos.
 const galacticExpansion = {
   systems: [
     { id: 'bespin-system', name: 'Sistema Bespin', planets: [{ id: 'bespin', name: 'Bespin', type: 'gas', owner: 'neutral', position: { x: 1230, y: 540 }, resources: { credits: 110, minerals: 25, energy: 90, research: 20 }, routes: ['hoth', 'endor'] }] },
@@ -9,3 +9,10 @@ const galacticExpansion = {
     { id: 'exegol-system', name: 'Sistema Exegol', planets: [{ id: 'exegol', name: 'Exegol', type: 'storm', owner: 'empire', position: { x: 980, y: 1140 }, resources: { credits: 60, minerals: 75, energy: 100, research: 130 }, routes: ['jakku', 'mustafar'] }] }
   ]
 };
+
+if (typeof galaxyMap !== 'undefined' && Array.isArray(galaxyMap.systems)) {
+  const existing = new Set(galaxyMap.systems.map(system => system.id));
+  galacticExpansion.systems.forEach(system => {
+    if (!existing.has(system.id)) galaxyMap.systems.push(system);
+  });
+}
