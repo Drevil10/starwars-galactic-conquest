@@ -3,16 +3,22 @@
 
 class GameStateClass {
     constructor() {
-        this.state = this.createInitialState();
-        this.listeners = new Map();
-    }
+        const INITIAL = {
+            credits: 100,
+            minerals: 50,
+            energy: 100,
+            research: 10
+        };
 
-    createInitialState() {
-        return {
-            credits: Constants.INITIAL_RESOURCES.credits ?? 100,
-            minerals: Constants.INITIAL_RESOURCES.minerals ?? 50,
-            energy: Constants.INITIAL_RESOURCES.energy ?? 100,
-            research: Constants.INITIAL_RESOURCES.research ?? 10,
+        const C = typeof Constants !== 'undefined' ? Constants : {};
+        const IR = C.INITIAL_RESOURCES || {};
+        const RL = C.RESOURCE_LIMITS || {};
+
+        this.state = {
+            credits: IR.credits ?? INITIAL.credits,
+            minerals: IR.minerals ?? INITIAL.minerals,
+            energy: IR.energy ?? INITIAL.energy,
+            research: IR.research ?? INITIAL.research,
 
             turn: 1,
             selectedFaction: null,
@@ -30,15 +36,66 @@ class GameStateClass {
                 }
             },
 
-            screen: Constants.SCREENS.START,
-            gameState: Constants.STATES.MENU,
+            screen: (C.SCREENS?.START) ?? 'START',
+            gameState: (C.STATES?.MENU) ?? 'MENU',
+            startTime: Date.now(),
+            lastSaveTime: Date.now()
+        };
+
+        this.limits = {
+            credits: RL.credits ?? Number.MAX_SAFE_INTEGER,
+            minerals: RL.minerals ?? Number.MAX_SAFE_INTEGER,
+            energy: RL.energy ?? Number.MAX_SAFE_INTEGER,
+            research: RL.research ?? Number.MAX_SAFE_INTEGER
+        };
+
+        this.listeners = new Map();
+    }
+
+    createInitialState() {
+        const C = typeof Constants !== 'undefined' ? Constants : {};
+        const IR = C.INITIAL_RESOURCES || {};
+
+        const INITIAL = {
+            credits: 100,
+            minerals: 50,
+            energy: 100,
+            research: 10
+        };
+
+        return {
+            credits: IR.credits ?? INITIAL.credits,
+            minerals: IR.minerals ?? INITIAL.minerals,
+            energy: IR.energy ?? INITIAL.energy,
+            research: IR.research ?? INITIAL.research,
+
+            turn: 1,
+            selectedFaction: null,
+            controlledPlanets: [],
+            fleets: [],
+            buildings: {},
+            researchedTech: [],
+            activeEvents: [],
+
+            projects: {
+                deathStar: {
+                    unlocked: false,
+                    progress: 0,
+                    completed: false
+                }
+            },
+
+            screen: (C.SCREENS?.START) ?? 'START',
+            gameState: (C.STATES?.MENU) ?? 'MENU',
             startTime: Date.now(),
             lastSaveTime: Date.now()
         };
     }
 
     init() {
-        const saved = SaveSystem.load('gameState');
+        const saved = (typeof SaveSystem !== 'undefined' && typeof SaveSystem.load === 'function')
+            ? SaveSystem.load('gameState')
+            : null;
 
         if (saved) {
             this.state = {
@@ -55,7 +112,7 @@ class GameStateClass {
 
         this.updateResourceUI();
 
-        if (Constants.GAME.AUTO_SAVE) {
+        if (typeof Constants !== 'undefined' && Constants.GAME?.AUTO_SAVE) {
             setInterval(() => this.autoSave(), Constants.GAME.SAVE_INTERVAL);
         }
     }
@@ -137,13 +194,12 @@ class GameStateClass {
     }
 
     addResources(changes) {
-        const limits = Constants.RESOURCE_LIMITS || {};
         const nextState = {};
 
         ['credits', 'minerals', 'energy', 'research'].forEach(resource => {
             if (changes[resource] === undefined) return;
 
-            const limit = limits[resource] ?? Number.MAX_SAFE_INTEGER;
+            const limit = this.limits[resource] ?? Number.MAX_SAFE_INTEGER;
             const current = this.state[resource] ?? 0;
 
             nextState[resource] = Math.max(
@@ -164,7 +220,7 @@ class GameStateClass {
             return;
         }
 
-        const limit = Constants.RESOURCE_LIMITS?.[resource] ?? Number.MAX_SAFE_INTEGER;
+        const limit = this.limits[resource] ?? Number.MAX_SAFE_INTEGER;
         const cappedValue = Math.max(0, Math.min(limit, value));
 
         this.setState({ [resource]: cappedValue });
@@ -198,7 +254,10 @@ class GameStateClass {
     }
 
     setScreen(screen) {
-        if (!Constants.SCREENS[screen.toUpperCase()]) {
+        const C = typeof Constants !== 'undefined' ? Constants : {};
+        const SCREENS = C.SCREENS || {};
+
+        if (!SCREENS[screen.toUpperCase()]) {
             console.warn('GameState: Pantalla inválida', screen);
             return;
         }
@@ -211,7 +270,10 @@ class GameStateClass {
     }
 
     setGameState(gameState) {
-        if (!Constants.STATES[gameState.toUpperCase()]) {
+        const C = typeof Constants !== 'undefined' ? Constants : {};
+        const STATES = C.STATES || {};
+
+        if (!STATES[gameState.toUpperCase()]) {
             console.warn('GameState: Estado inválido', gameState);
             return;
         }
@@ -256,12 +318,20 @@ class GameStateClass {
     }
 
     autoSave() {
+        if (typeof SaveSystem === 'undefined' || typeof SaveSystem.save !== 'function') {
+            return;
+        }
+
         this.state.lastSaveTime = Date.now();
         SaveSystem.save('gameState', this.state);
         console.log('GameState: Auto-guardado completado');
     }
 
     save() {
+        if (typeof SaveSystem === 'undefined' || typeof SaveSystem.save !== 'function') {
+            return;
+        }
+
         this.state.lastSaveTime = Date.now();
         SaveSystem.save('gameState', this.state);
         console.log('GameState: Guardado manual completado');
@@ -269,9 +339,12 @@ class GameStateClass {
 
     reset() {
         this.state = this.createInitialState();
-        SaveSystem.clear('gameState');
-        this.updateResourceUI();
 
+        if (typeof SaveSystem !== 'undefined' && typeof SaveSystem.clear === 'function') {
+            SaveSystem.clear('gameState');
+        }
+
+        this.updateResourceUI();
         this.emit('reset', this.getState());
         console.log('GameState: Reset completado');
     }
