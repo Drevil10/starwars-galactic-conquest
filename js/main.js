@@ -1,18 +1,38 @@
 // js/main.js
-// Inicio de aplicación, navegación y conexión de interfaz con el estado del juego.
+// Inicio de aplicación, navegación, Archivo y conexión de interfaz con el estado.
 
 const characterLore = {};
+
+const state = {
+  archiveEntries: [],
+  archiveLoaded: false,
+  archiveLoading: null
+};
 
 const startScreen = document.getElementById('start-screen');
 const gameScreen = document.getElementById('game-screen');
 const startBtn = document.getElementById('start-btn');
 
+const energyRes = document.getElementById('energy-res');
+const creditsRes = document.getElementById('credits-res');
+const mineralsRes = document.getElementById('minerals-res');
+const researchRes = document.getElementById('research-res');
+const turnInfoEl = document.getElementById('turn-info');
 const nextTurnBtn = document.getElementById('next-turn-btn');
+
 const navBtns = document.querySelectorAll('.nav-btn');
 
 const archiveScreen = document.getElementById('archive-screen');
 const archiveList = document.getElementById('archive-list');
 const archiveDetail = document.getElementById('archive-detail');
+const archiveGrid = document.getElementById('archive-grid');
+const archiveEmpty = document.getElementById('archive-empty');
+const archiveSearch = document.getElementById('archive-search');
+const archiveFilters = document.getElementById('archive-filters');
+const detailImage = document.getElementById('detail-image');
+const detailTitle = document.getElementById('detail-title');
+const detailType = document.getElementById('detail-type');
+const detailDescription = document.getElementById('detail-description');
 const archiveBack = document.getElementById('archive-back');
 
 const buildScreen = document.getElementById('build-screen');
@@ -25,6 +45,19 @@ const militaryScreen = document.getElementById('military-screen');
 const militaryBack = document.getElementById('military-back');
 
 const canvas = document.getElementById('game-canvas');
+
+function updateResourceUI() {
+  if (typeof GameState === 'undefined') return;
+
+  const resources = GameState.getResources();
+  const gameState = GameState.getState();
+
+  if (energyRes) energyRes.textContent = Math.floor(resources.energy || 0);
+  if (creditsRes) creditsRes.textContent = Math.floor(resources.credits || 0);
+  if (mineralsRes) mineralsRes.textContent = Math.floor(resources.minerals || 0);
+  if (researchRes) researchRes.textContent = Math.floor(resources.research || 0);
+  if (turnInfoEl) turnInfoEl.textContent = `Turno ${gameState.turn || 1}`;
+}
 
 function closeAllOverlays() {
   if (archiveScreen) archiveScreen.style.display = 'none';
@@ -39,29 +72,6 @@ function setActiveTab(tabName) {
   });
 }
 
-function showOverlay(tabName) {
-  closeAllOverlays();
-
-  if (tabName === 'archive' && archiveScreen) {
-    archiveScreen.style.display = 'block';
-
-    if (archiveList) archiveList.style.display = 'block';
-    if (archiveDetail) archiveDetail.style.display = 'none';
-  }
-
-  if (tabName === 'build' && buildScreen) {
-    buildScreen.style.display = 'block';
-  }
-
-  if (tabName === 'research' && researchScreen) {
-    researchScreen.style.display = 'block';
-  }
-
-  if (tabName === 'military' && militaryScreen) {
-    militaryScreen.style.display = 'block';
-  }
-}
-
 function renderMap() {
   if (
     typeof MapSystem !== 'undefined' &&
@@ -70,6 +80,222 @@ function renderMap() {
     MapSystem.render();
   }
 }
+
+// ==================== ARCHIVO ====================
+
+function archiveType(path) {
+  if (path.startsWith('assets/characters/')) return 'personaje';
+  if (path.startsWith('assets/locations/')) return 'planeta';
+  if (path.startsWith('assets/effects/')) return 'evento';
+  return 'tecnologia';
+}
+
+function archiveTitle(path) {
+  return path
+    .split('/')
+    .pop()
+    .replace(/\.svg$/i, '')
+    .split('-')
+    .map(word => {
+      if (!word) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
+
+function archiveDescription(title, type, path) {
+  const fileName = path.split('/').pop().replace(/\.svg$/i, '');
+
+  if (characterLore[fileName]) {
+    return characterLore[fileName];
+  }
+
+  const descriptions = {
+    personaje: `${title} es una figura registrada en los archivos galacticos. Su historia queda ligada a conflictos, alianzas y decisiones que marcaron su epoca.`,
+    planeta: `${title} es una localizacion de importancia dentro de la galaxia. Sus condiciones, habitantes y recursos han influido en rutas, batallas y operaciones de distintas facciones.`,
+    evento: `${title} representa un suceso destacado en los registros galacticos. Su impacto modifica el curso de un enfrentamiento y deja consecuencias para quienes participan.`,
+    tecnologia: `${title} forma parte del equipo, arsenal o infraestructura utilizada en la galaxia. Su diseno responde a necesidades de combate, transporte, defensa o supervivencia.`
+  };
+
+  return descriptions[type] || `${title} es una entrada registrada en el Archivo galactico.`;
+}
+
+async function loadArchiveEntries() {
+  if (state.archiveLoaded) {
+    return state.archiveEntries;
+  }
+
+  if (state.archiveLoading) {
+    return state.archiveLoading;
+  }
+
+  state.archiveLoading = fetch(
+    'https://api.github.com/repos/Drevil10/starwars-galactic-conquest/git/trees/main?recursive=1'
+  )
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('No se pudo cargar el Archivo.');
+      }
+
+      return response.json();
+    })
+    .then(data => {
+      state.archiveEntries = (data.tree || [])
+        .filter(item => {
+          return (
+            item.type === 'blob' &&
+            item.path.startsWith('assets/') &&
+            item.path.endsWith('.svg')
+          );
+        })
+        .map(item => {
+          const title = archiveTitle(item.path);
+          const type = archiveType(item.path);
+
+          return {
+            id: item.path,
+            type,
+            title,
+            description: archiveDescription(title, type, item.path),
+            image: item.path
+          };
+        })
+        .sort((a, b) => a.title.localeCompare(b.title));
+
+      state.archiveLoaded = true;
+
+      return state.archiveEntries;
+    })
+    .catch(error => {
+      console.error('main.js: Error cargando el Archivo.', error);
+
+      state.archiveEntries = [];
+      state.archiveLoaded = true;
+
+      return [];
+    })
+    .finally(() => {
+      state.archiveLoading = null;
+    });
+
+  return state.archiveLoading;
+}
+
+function renderArchiveGrid() {
+  if (!archiveGrid) return;
+
+  const query = (archiveSearch?.value || '').toLowerCase().trim();
+
+  const activeButton = archiveFilters?.querySelector(
+    '.archive-filter.active'
+  );
+
+  const activeFilter = activeButton ? activeButton.dataset.type : 'all';
+
+  const entries = state.archiveEntries.filter(entry => {
+    const matchesType =
+      activeFilter === 'all' || entry.type === activeFilter;
+
+    const matchesQuery =
+      !query ||
+      entry.title.toLowerCase().includes(query) ||
+      entry.description.toLowerCase().includes(query);
+
+    return matchesType && matchesQuery;
+  });
+
+  archiveGrid.innerHTML = '';
+
+  if (archiveEmpty) {
+    archiveEmpty.style.display = entries.length > 0 ? 'none' : 'block';
+  }
+
+  entries.forEach(entry => {
+    const card = document.createElement('button');
+
+    card.type = 'button';
+    card.className = 'archive-card';
+
+    card.innerHTML =
+      `<img class="archive-card-image" src="${entry.image}" alt="" />` +
+      `<div class="archive-card-text">` +
+      `<span class="archive-card-title">${entry.title}</span>` +
+      `<span class="archive-card-category">${entry.type}</span>` +
+      `</div>`;
+
+    card.addEventListener('click', () => openArchiveDetail(entry));
+
+    archiveGrid.appendChild(card);
+  });
+}
+
+function openArchiveDetail(entry) {
+  if (archiveList) archiveList.style.display = 'none';
+  if (archiveDetail) archiveDetail.style.display = 'block';
+
+  if (detailImage) {
+    detailImage.src = entry.image;
+    detailImage.alt = entry.title;
+  }
+
+  if (detailTitle) detailTitle.textContent = entry.title;
+  if (detailType) detailType.textContent = entry.type;
+  if (detailDescription) detailDescription.textContent = entry.description;
+}
+
+async function openArchive() {
+  closeAllOverlays();
+
+  if (!archiveScreen) return;
+
+  archiveScreen.style.display = 'block';
+
+  if (archiveList) archiveList.style.display = 'block';
+  if (archiveDetail) archiveDetail.style.display = 'none';
+
+  if (!state.archiveLoaded) {
+    if (archiveGrid) {
+      archiveGrid.innerHTML =
+        '<div class="archive-empty">Cargando Archivo...</div>';
+    }
+
+    if (archiveEmpty) {
+      archiveEmpty.style.display = 'none';
+    }
+
+    await loadArchiveEntries();
+  }
+
+  renderArchiveGrid();
+}
+
+// ==================== PANELES DE JUEGO ====================
+
+function openBuild() {
+  closeAllOverlays();
+
+  if (buildScreen) {
+    buildScreen.style.display = 'block';
+  }
+}
+
+function openResearch() {
+  closeAllOverlays();
+
+  if (researchScreen) {
+    researchScreen.style.display = 'block';
+  }
+}
+
+function openMilitary() {
+  closeAllOverlays();
+
+  if (militaryScreen) {
+    militaryScreen.style.display = 'block';
+  }
+}
+
+// ==================== PARTIDA Y TURNOS ====================
 
 function startGame() {
   if (startScreen) startScreen.classList.remove('active');
@@ -81,9 +307,9 @@ function startGame() {
   if (typeof GameState !== 'undefined') {
     GameState.setScreen('map');
     GameState.setGameState('playing');
-    GameState.updateResourceUI();
-    GameState.updateTurnUI();
   }
+
+  updateResourceUI();
 
   setTimeout(() => {
     if (
@@ -112,6 +338,7 @@ function advanceTurn() {
 
   if (!result) return;
 
+  updateResourceUI();
   renderMap();
 
   console.log(
@@ -120,23 +347,7 @@ function advanceTurn() {
   );
 }
 
-function initializeSystems() {
-  if (typeof GameState !== 'undefined' && typeof GameState.init === 'function') {
-    GameState.init();
-  }
-
-  if (typeof TurnSystem !== 'undefined' && typeof TurnSystem.init === 'function') {
-    TurnSystem.init();
-  }
-
-  if (
-    canvas &&
-    typeof MapSystem !== 'undefined' &&
-    typeof MapSystem.init === 'function'
-  ) {
-    MapSystem.init(canvas);
-  }
-}
+// ==================== EVENTOS DE INTERFAZ ====================
 
 if (startBtn) {
   startBtn.addEventListener('click', startGame);
@@ -162,13 +373,30 @@ navBtns.forEach(button => {
       return;
     }
 
-    if (tabName === 'menu') {
-      closeAllOverlays();
-      alert('El menú de partida llegará tras la selección de facción.');
+    if (tabName === 'build') {
+      openBuild();
       return;
     }
 
-    showOverlay(tabName);
+    if (tabName === 'research') {
+      openResearch();
+      return;
+    }
+
+    if (tabName === 'military') {
+      openMilitary();
+      return;
+    }
+
+    if (tabName === 'archive') {
+      openArchive();
+      return;
+    }
+
+    if (tabName === 'menu') {
+      closeAllOverlays();
+      alert('El menú de partida llegará tras la selección de facción.');
+    }
   });
 });
 
@@ -203,9 +431,53 @@ if (militaryBack) {
   });
 }
 
+if (archiveSearch) {
+  archiveSearch.addEventListener('input', renderArchiveGrid);
+}
+
+if (archiveFilters) {
+  archiveFilters.addEventListener('click', event => {
+    const button = event.target.closest('.archive-filter');
+
+    if (!button) return;
+
+    archiveFilters
+      .querySelectorAll('.archive-filter')
+      .forEach(filter => filter.classList.remove('active'));
+
+    button.classList.add('active');
+
+    renderArchiveGrid();
+  });
+}
+
+// ==================== INICIALIZACIÓN ====================
+
 window.addEventListener('load', () => {
   try {
-    initializeSystems();
+    if (
+      typeof GameState !== 'undefined' &&
+      typeof GameState.init === 'function'
+    ) {
+      GameState.init();
+    }
+
+    if (
+      typeof TurnSystem !== 'undefined' &&
+      typeof TurnSystem.init === 'function'
+    ) {
+      TurnSystem.init();
+    }
+
+    if (
+      canvas &&
+      typeof MapSystem !== 'undefined' &&
+      typeof MapSystem.init === 'function'
+    ) {
+      MapSystem.init(canvas);
+    }
+
+    updateResourceUI();
   } catch (error) {
     console.error('main.js: Error al inicializar el juego.', error);
   }
