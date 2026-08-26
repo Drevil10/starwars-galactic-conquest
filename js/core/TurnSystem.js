@@ -1,142 +1,120 @@
 // js/core/TurnSystem.js
-// Sistema de turnos y producción por planeta.
+// Avance de turnos y producción basada en el mapa actual.
 
 class TurnSystemClass {
     constructor() {
-        this.planetData = null;
+        this.initialized = false;
     }
 
     init() {
-        this.planetData = PlanetData.getPlanets();
+        this.initialized = true;
+        console.log('TurnSystem: Inicializado.');
     }
 
-    getPlanetProduction(planetId) {
-        const planet = this.planetData.find(p => p.id === planetId);
-
-        if (!planet) {
-            return {
-                credits: 0,
-                minerals: 0,
-                energy: 0,
-                research: 0
-            };
-        }
-
-        const base = {
-            credits: planet.credits || 0,
-            minerals: planet.minerals || 0,
-            energy: planet.energy || 0,
-            research: planet.research || 0
-        };
-
-        const buildings = GameState.getState().buildings[planetId] || {};
-
-        const multipliers = {
-            credits: 1,
-            minerals: 1,
-            energy: 1,
-            research: 1
-        };
-
-        Object.entries(buildings).forEach(([buildingId, count]) => {
-            if (count <= 0) return;
-
-            const building = BuildingData.getBuilding(buildingId);
-            if (!building || !building.production) return;
-
-            const prod = building.production;
-
-            if (prod.credits) multipliers.credits += prod.credits * count;
-            if (prod.minerals) multipliers.minerals += prod.minerals * count;
-            if (prod.energy) multipliers.energy += prod.energy * count;
-            if (prod.research) multipliers.research += prod.research * count;
-        });
-
+    getEmptyProduction() {
         return {
-            credits: Math.floor(base.credits * multipliers.credits),
-            minerals: Math.floor(base.minerals * multipliers.minerals),
-            energy: Math.floor(base.energy * multipliers.energy),
-            research: Math.floor(base.research * multipliers.research)
-        };
-    }
-
-    getTotalProduction() {
-        const controlled = GameState.getState().controlledPlanets;
-
-        const total = {
             credits: 0,
             minerals: 0,
             energy: 0,
             research: 0
         };
+    }
 
-        controlled.forEach(planetId => {
-            const prod = this.getPlanetProduction(planetId);
+    getPlanets() {
+        if (
+            typeof galaxyMap === 'undefined' ||
+            !Array.isArray(galaxyMap.systems)
+        ) {
+            return [];
+        }
 
-            total.credits += prod.credits;
-            total.minerals += prod.minerals;
-            total.energy += prod.energy;
-            total.research += prod.research;
+        return galaxyMap.systems.flatMap(system => {
+            return Array.isArray(system.planets) ? system.planets : [];
+        });
+    }
+
+    getPlanetById(planetId) {
+        return this.getPlanets().find(planet => planet.id === planetId) || null;
+    }
+
+    getPlanetProduction(planetId) {
+        const planet = this.getPlanetById(planetId);
+
+        if (!planet) {
+            return this.getEmptyProduction();
+        }
+
+        const resources = planet.resources || planet.production || {};
+
+        return {
+            credits: Math.max(0, Number(resources.credits || 0)),
+            minerals: Math.max(0, Number(resources.minerals || 0)),
+            energy: Math.max(0, Number(resources.energy || 0)),
+            research: Math.max(0, Number(resources.research || 0))
+        };
+    }
+
+    getTotalProduction() {
+        if (typeof GameState === 'undefined') {
+            return this.getEmptyProduction();
+        }
+
+        const total = this.getEmptyProduction();
+        const controlledPlanets = GameState.getState().controlledPlanets;
+
+        controlledPlanets.forEach(planetId => {
+            const production = this.getPlanetProduction(planetId);
+
+            total.credits += production.credits;
+            total.minerals += production.minerals;
+            total.energy += production.energy;
+            total.research += production.research;
         });
 
         return total;
     }
 
     nextTurn() {
+        if (typeof GameState === 'undefined') {
+            console.error('TurnSystem: GameState no está disponible.');
+            return null;
+        }
+
+        if (!this.initialized) {
+            this.init();
+        }
+
         const production = this.getTotalProduction();
+        const currentState = GameState.getState();
+        const nextTurn = currentState.turn + 1;
 
         GameState.addResources(production);
+        GameState.setState({
+            turn: nextTurn,
+            lastSaveTime: Date.now()
+        });
 
-        const state = GameState.getState();
-        const nextTurn = state.turn + 1;
-
-        GameState.setState({ turn: nextTurn });
-
-        this.updateProjects(production);
-
-        console.log(`Turno ${state.turn} → ${nextTurn}. Producción:`, production);
+        console.log(
+            `TurnSystem: Turno ${currentState.turn} → ${nextTurn}.`,
+            production
+        );
 
         return {
             turn: nextTurn,
-            production
+            production,
+            controlledPlanets: currentState.controlledPlanets.length
         };
     }
 
-    updateProjects(production) {
-        const state = GameState.getState();
-        const projects = state.projects || {};
-
-        if (projects.deathStar && projects.deathStar.unlocked && !projects.deathStar.completed) {
-            const dsCost = Constants.PROJECTS?.DEATH_STAR?.cost || {};
-            const dsResearchPerTurn = Constants.PROJECTS?.DEATH_STAR?.researchPerTurn || 1;
-
-            if (production.research > 0) {
-                const progress = Math.min(
-                    dsCost.research || 1000,
-                    (projects.deathStar.progress || 0) + dsResearchPerTurn
-                );
-
-                const completed = progress >= (dsCost.research || 1000);
-
-                GameState.setState({
-                    projects: {
-                        ...projects,
-                        deathStar: {
-                            ...projects.deathStar,
-                            progress,
-                            completed
-                        }
-                    }
-                });
-
-                if (completed) {
-                    console.log('Proyecto Death Star completado');
-                }
-            }
-        }
-    }
-
     getTurnInfo() {
+        if (typeof GameState === 'undefined') {
+            return {
+                turn: 1,
+                controlledPlanets: 0,
+                production: this.getEmptyProduction()
+            };
+        }
+
         const state = GameState.getState();
 
         return {
@@ -147,5 +125,4 @@ class TurnSystemClass {
     }
 }
 
-// Exportar instancia global.
 window.TurnSystem = new TurnSystemClass();
