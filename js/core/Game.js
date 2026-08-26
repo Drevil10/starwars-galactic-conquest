@@ -1,5 +1,5 @@
 // js/core/Game.js
-// Módulo principal del juego - maneja el canvas, resize y loop principal
+// Módulo principal del juego - maneja el canvas, resize y loop principal.
 
 class Game {
     constructor() {
@@ -14,30 +14,43 @@ class Game {
 
     init() {
         this.canvas = document.getElementById('game-canvas');
+
         if (!this.canvas) {
             console.error('Game: Canvas no encontrado');
             return false;
         }
 
         this.ctx = this.canvas.getContext('2d');
+
         if (!this.ctx) {
             console.error('Game: No se pudo obtener el contexto 2D');
             return false;
         }
 
-        // Configurar canvas para touch
+        // Configurar canvas para touch.
         this.canvas.style.touchAction = 'none';
 
-        // Resize inicial
+        // Resize inicial.
         this.resizeCanvas();
 
-        // Escuchar cambios de tamaño
+        // Escuchar cambios de tamaño.
         window.addEventListener('resize', () => this.resizeCanvas());
-        
-        // También escuchar orientación en móviles
+
+        // También escuchar orientación en móviles.
         window.addEventListener('orientationchange', () => {
             setTimeout(() => this.resizeCanvas(), 100);
         });
+
+        // Inicializar sistema de turnos y producción planetaria.
+        if (typeof TurnSystem !== 'undefined' && typeof TurnSystem.init === 'function') {
+            TurnSystem.init();
+            console.log('Game: TurnSystem inicializado');
+        } else {
+            console.warn(
+                'Game: TurnSystem no está disponible. ' +
+                'Comprueba que js/core/TurnSystem.js se cargue antes de js/core/Game.js.'
+            );
+        }
 
         console.log('Game: Canvas inicializado', {
             width: this.width,
@@ -50,37 +63,38 @@ class Game {
 
     resizeCanvas() {
         const gameArea = document.getElementById('game-area');
+
         if (!gameArea || !this.canvas) return;
 
-        // Obtener tamaño real del contenedor en píxeles CSS
+        // Obtener tamaño real del contenedor en píxeles CSS.
         const width = Math.max(1, gameArea.clientWidth);
         const height = Math.max(1, gameArea.clientHeight);
-        
-        // Limitar pixel ratio a 2 para rendimiento en móviles
+
+        // Limitar pixel ratio a 2 para rendimiento en móviles.
         const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
 
-        // Establecer tamaño CSS del canvas
+        // Establecer tamaño CSS del canvas.
         this.canvas.style.width = `${width}px`;
         this.canvas.style.height = `${height}px`;
 
-        // Establecer tamaño real del canvas (píxeles de dispositivo)
+        // Establecer tamaño real del canvas en píxeles de dispositivo.
         this.canvas.width = Math.floor(width * pixelRatio);
         this.canvas.height = Math.floor(height * pixelRatio);
 
-        // Configurar transformación para dibujar en píxeles CSS
+        // Configurar transformación para dibujar en píxeles CSS.
         this.ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
-        // Actualizar estado interno
+        // Actualizar estado interno.
         this.width = width;
         this.height = height;
         this.pixelRatio = pixelRatio;
 
-        // Notificar al renderer
-        if (typeof Renderer !== 'undefined') {
+        // Notificar al renderer.
+        if (typeof Renderer !== 'undefined' && typeof Renderer.onResize === 'function') {
             Renderer.onResize(width, height);
         }
 
-        // Forzar redraw inmediato
+        // Forzar redraw inmediato.
         if (typeof Renderer !== 'undefined' && typeof Renderer.render === 'function') {
             Renderer.render();
         }
@@ -90,16 +104,17 @@ class Game {
             cssHeight: height,
             deviceWidth: this.canvas.width,
             deviceHeight: this.canvas.height,
-            pixelRatio: pixelRatio
+            pixelRatio: this.pixelRatio
         });
     }
 
     start() {
         if (this.isRunning) return;
-        
+
         this.isRunning = true;
         this.lastTime = performance.now();
         this.gameLoop();
+
         console.log('Game: Loop iniciado');
     }
 
@@ -114,28 +129,30 @@ class Game {
         const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
 
-        // Limitar delta time para evitar saltos grandes
+        // Limitar delta time para evitar saltos grandes.
         const safeDelta = Math.min(deltaTime, 0.1);
 
-        // Actualizar lógica del juego
+        // Actualizar lógica del juego.
         this.update(safeDelta);
 
-        // Renderizar
+        // Renderizar.
         this.render();
 
-        // Siguiente frame
-        requestAnimationFrame((time) => this.gameLoop(time));
+        // Siguiente frame.
+        requestAnimationFrame(time => this.gameLoop(time));
     }
 
     update(deltaTime) {
-        // Actualizar sistemas del juego
-        if (typeof Base !== 'undefined' && Base.update) {
+        // Actualizar sistemas del juego.
+        if (typeof Base !== 'undefined' && typeof Base.update === 'function') {
             Base.update(deltaTime);
         }
-        if (typeof Characters !== 'undefined' && Characters.update) {
+
+        if (typeof Characters !== 'undefined' && typeof Characters.update === 'function') {
             Characters.update(deltaTime);
         }
-        if (typeof Ships !== 'undefined' && Ships.update) {
+
+        if (typeof Ships !== 'undefined' && typeof Ships.update === 'function') {
             Ships.update(deltaTime);
         }
     }
@@ -143,27 +160,29 @@ class Game {
     render() {
         if (!this.ctx) return;
 
-        // Limpiar canvas
+        // Limpiar canvas.
         this.ctx.clearRect(0, 0, this.width, this.height);
 
-        // Renderizar sistemas
-        if (typeof Renderer !== 'undefined' && Renderer.render) {
+        // Renderizar sistemas.
+        if (typeof Renderer !== 'undefined' && typeof Renderer.render === 'function') {
             Renderer.render();
         }
     }
 
-    // Utilidad: convertir coordenadas de pantalla a coordenadas del canvas
+    // Utilidad: convertir coordenadas de pantalla a coordenadas del canvas.
     getCanvasCoordinates(clientX, clientY) {
         const rect = this.canvas.getBoundingClientRect();
+
         return {
             x: (clientX - rect.left) * (this.canvas.width / rect.width),
             y: (clientY - rect.top) * (this.canvas.height / rect.height)
         };
     }
 
-    // Utilidad: obtener coordenadas en píxeles CSS (para lógica del juego)
+    // Utilidad: obtener coordenadas en píxeles CSS para lógica del juego.
     getCSSCoordinates(clientX, clientY) {
         const rect = this.canvas.getBoundingClientRect();
+
         return {
             x: clientX - rect.left,
             y: clientY - rect.top
@@ -171,5 +190,5 @@ class Game {
     }
 }
 
-// Exportar instancia global
+// Exportar instancia global.
 window.Game = new Game();
