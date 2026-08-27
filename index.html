@@ -2,19 +2,33 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
   <title>Star Wars: Galactic Conquest</title>
+
   <link rel="stylesheet" href="css/styles.css" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/faction-selection.css" />
 </head>
 <body>
   <div id="app">
     <div id="start-screen" class="screen active">
       <h1>Star Wars<br />Galactic Conquest</h1>
-      <p class="subtitle">Conquista la galaxia como el Imperio Galactico o la Alianza Rebelde</p>
-      <button id="start-btn" class="primary-btn" type="button">Comenzar</button>
 
-      <div id="faction-selection" class="faction-selection-overlay" style="display:none;"></div>
+      <p class="subtitle">
+        Conquista la galaxia como el Imperio Galactico o la Alianza Rebelde
+      </p>
+
+      <button id="start-btn" class="primary-btn" type="button">
+        Comenzar
+      </button>
+
+      <div
+        id="faction-selection"
+        class="faction-selection-overlay"
+        style="display:none;"
+      ></div>
     </div>
 
     <div id="game-screen" class="screen">
@@ -39,7 +53,12 @@
           <span class="resource-value" id="research-res">0</span>
         </div>
 
-        <button id="next-turn-btn" class="resource turn-button" type="button" aria-label="Avanzar turno">
+        <button
+          id="next-turn-btn"
+          class="resource turn-button"
+          type="button"
+          aria-label="Avanzar turno"
+        >
           <span class="resource-icon">🕒</span>
           <span class="resource-value" id="turn-info">Turno 1</span>
           <span class="turn-arrow">›</span>
@@ -49,9 +68,15 @@
       <main id="game-area">
         <canvas id="game-canvas"></canvas>
 
-        <div id="archive-screen" class="canvas-overlay" style="display:none;">
+        <!-- Archivo -->
+        <div
+          id="archive-screen"
+          class="canvas-overlay"
+          style="display:none;"
+        >
           <div id="archive-list" class="archive-panel">
             <h2 class="archive-title">Archivo</h2>
+
             <input
               id="archive-search"
               class="archive-search"
@@ -60,62 +85,124 @@
             />
 
             <div id="archive-filters" class="archive-filters">
-              <button class="archive-filter active" data-type="all" type="button">Todos</button>
-              <button class="archive-filter" data-type="personaje" type="button">Personajes</button>
-              <button class="archive-filter" data-type="tecnologia" type="button">Tecnologia</button>
-              <button class="archive-filter" data-type="planeta" type="button">Planetas</button>
-              <button class="archive-filter" data-type="evento" type="button">Eventos</button>
+              <button class="archive-filter active" data-type="all" type="button">
+                Todos
+              </button>
+              <button class="archive-filter" data-type="personaje" type="button">
+                Personajes
+              </button>
+              <button class="archive-filter" data-type="tecnologia" type="button">
+                Tecnologia
+              </button>
+              <button class="archive-filter" data-type="planeta" type="button">
+                Planetas
+              </button>
+              <button class="archive-filter" data-type="evento" type="button">
+                Eventos
+              </button>
             </div>
 
             <div id="archive-grid" class="archive-grid"></div>
 
-            <div id="archive-empty" class="archive-empty" style="display:none;">
+            <div
+              id="archive-empty"
+              class="archive-empty"
+              style="display:none;"
+            >
               No hay entradas en el Archivo aun.
             </div>
           </div>
 
-          <div id="archive-detail" class="archive-panel" style="display:none;">
+          <div
+            id="archive-detail"
+            class="archive-panel"
+            style="display:none;"
+          >
             <img id="detail-image" class="archive-detail-image" alt="" />
             <h2 id="detail-title" class="archive-detail-title"></h2>
             <div id="detail-type" class="archive-detail-type"></div>
             <p id="detail-description" class="archive-detail-description"></p>
-            <button id="archive-back" class="action-btn archive-back-button" type="button">
+
+            <button
+              id="archive-back"
+              class="action-btn archive-back-button"
+              type="button"
+            >
               Volver
             </button>
           </div>
         </div>
 
-        <div id="build-screen" class="canvas-overlay" style="display:none;">
+        <!-- Construir -->
+        <div
+          id="build-screen"
+          class="canvas-overlay"
+          style="display:none;"
+        >
           <div class="archive-panel">
             <h2 class="archive-title">Construir</h2>
+
             <div id="build-grid" class="archive-grid">
-              <div class="archive-empty">La construcción se desbloqueará al iniciar una campaña.</div>
+              <div class="archive-empty">
+                La construcción se desbloqueará al iniciar una campaña.
+              </div>
             </div>
-            <button id="build-back" class="action-btn archive-back-button" type="button">
+
+            <button
+              id="build-back"
+              class="action-btn archive-back-button"
+              type="button"
+            >
               Volver
             </button>
           </div>
         </div>
 
-        <div id="research-screen" class="canvas-overlay" style="display:none;">
+        <!-- Investigar -->
+        <div
+          id="research-screen"
+          class="canvas-overlay"
+          style="display:none;"
+        >
           <div class="archive-panel">
             <h2 class="archive-title">Investigar</h2>
+
             <div id="research-grid" class="archive-grid">
-              <div class="archive-empty">La investigación se desbloqueará al iniciar una campaña.</div>
+              <div class="archive-empty">
+                La investigación se desbloqueará al iniciar una campaña.
+              </div>
             </div>
-            <button id="research-back" class="action-btn archive-back-button" type="button">
+
+            <button
+              id="research-back"
+              class="action-btn archive-back-button"
+              type="button"
+            >
               Volver
             </button>
           </div>
         </div>
 
-        <div id="military-screen" class="canvas-overlay" style="display:none;">
+        <!-- Militar -->
+        <div
+          id="military-screen"
+          class="canvas-overlay"
+          style="display:none;"
+        >
           <div class="archive-panel">
             <h2 class="archive-title">Militar</h2>
+
             <div id="military-grid" class="archive-grid">
-              <div class="archive-empty">Las flotas se desbloquearán al iniciar una campaña.</div>
+              <div class="archive-empty">
+                Las flotas se desbloquearán al iniciar una campaña.
+              </div>
             </div>
-            <button id="military-back" class="action-btn archive-back-button" type="button">
+
+            <button
+              id="military-back"
+              class="action-btn archive-back-button"
+              type="button"
+            >
               Volver
             </button>
           </div>
@@ -181,7 +268,7 @@
     </div>
   </div>
 
-  <!-- Constantes y datos -->
+  <!-- Constantes, datos del mapa y datos de campaña -->
   <script src="js/core/Constants.js"></script>
   <script src="js/data/map-data.js"></script>
   <script src="js/data/map-expansion.js"></script>
