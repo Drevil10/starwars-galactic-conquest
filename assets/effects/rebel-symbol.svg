@@ -1,81 +1,173 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  viewBox="0 0 300 300"
+  viewBox="0 0 256 256"
   role="img"
-  aria-label="Emblema de la Alianza Rebelde"
+  aria-labelledby="title desc"
 >
-  <path
-    fill="#f2a62b"
-    fill-rule="evenodd"
-    d="
-      M150 10
-      L193 67
-      C181 84 176 103 177 124
-      C184 108 197 94 218 82
-      L248 113
-      C217 130 201 157 201 188
-      C201 226 178 257 150 280
-      C122 257 99 226 99 188
-      C99 157 83 130 52 113
-      L82 82
-      C103 94 116 108 123 124
-      C124 103 119 84 107 67
-      Z
+  <title id="title">Emblema de la Alianza Rebelde</title>
+  <desc id="desc">
+    Emblema estilizado de un ave fénix con alas abiertas para la Alianza Rebelde.
+  </desc>
 
-      M95 116
-      C72 134 57 157 57 188
-      C57 229 88 263 127 274
-      C105 253 90 224 90 192
-      C90 160 102 134 121 117
-      C111 118 102 118 95 116
-      Z
+  <defs>
+    <linearGradient id="rebel-orange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffe083" />
+      <stop offset="38%" stop-color="#ffb52d" />
+      <stop offset="72%" stop-color="#f26a21" />
+      <stop offset="100%" stop-color="#d9362c" />
+    </linearGradient>
 
-      M205 116
-      C198 118 189 118 179 117
-      C198 134 210 160 210 192
-      C210 224 195 253 173 274
-      C212 263 243 229 243 188
-      C243 157 228 134 205 116
-      Z
-    "
-  />
+    <linearGradient id="rebel-highlight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff1b8" />
+      <stop offset="100%" stop-color="#ffb52d" />
+    </linearGradient>
 
-  <path
-    fill="#ffcf5c"
-    d="
-      M150 24
-      L174 73
-      C164 86 158 101 157 119
-      L150 143
-      L143 119
-      C142 101 136 86 126 73
-      Z
-    "
-  />
+    <filter id="rebel-glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
 
-  <path
-    fill="#b83c2f"
-    d="
-      M150 143
-      C158 168 161 195 154 224
-      L150 244
-      L146 224
-      C139 195 142 168 150 143
-      Z
-    "
-  />
-
-  <path
-    fill="none"
-    stroke="#b83c2f"
-    stroke-width="8"
+  <g
+    fill="url(#rebel-orange)"
+    stroke="#ffdb6e"
+    stroke-linejoin="round"
     stroke-linecap="round"
-    d="
-      M121 125
-      C107 142 101 162 101 184
+  >
+    <!-- Ala izquierda -->
+    <path
+      d="
+        M124 87
+        C111 91 101 98 91 107
+        C81 116 70 120 54 120
+        L29 118
+        L49 133
+        L25 139
+        L53 147
+        L34 162
+        L67 158
+        L55 178
+        L83 165
+        L79 190
+        L101 168
+        C108 160 115 150 121 139
+        L128 116
+        Z
+      "
+      stroke-width="5"
+    />
 
-      M179 125
-      C193 142 199 162 199 184
-    "
+    <!-- Ala derecha -->
+    <path
+      d="
+        M132 87
+        C145 91 155 98 165 107
+        C175 116 186 120 202 120
+        L227 118
+        L207 133
+        L231 139
+        L203 147
+        L222 162
+        L189 158
+        L201 178
+        L173 165
+        L177 190
+        L155 168
+        C148 160 141 150 135 139
+        L128 116
+        Z
+      "
+      stroke-width="5"
+    />
+
+    <!-- Cuerpo, cabeza y cresta -->
+    <path
+      d="
+        M128 19
+        L140 53
+        L157 43
+        L151 72
+        L174 67
+        L157 93
+        C149 105 143 116 140 130
+        L137 147
+        L151 137
+        L146 163
+        L161 158
+        L151 185
+        L169 181
+        L151 211
+        L128 238
+        L105 211
+        L87 181
+        L105 185
+        L95 158
+        L110 163
+        L105 137
+        L119 147
+        L116 130
+        C113 116 107 105 99 93
+        L82 67
+        L105 72
+        L99 43
+        L116 53
+        Z
+      "
+      stroke-width="5"
+    />
+
+    <!-- Punta de la cabeza -->
+    <path
+      d="
+        M128 19
+        L139 65
+        L128 83
+        L117 65
+        Z
+      "
+      fill="url(#rebel-highlight)"
+      stroke-width="4"
+    />
+
+    <!-- Cola -->
+    <path
+      d="
+        M128 151
+        L141 191
+        L128 237
+        L115 191
+        Z
+      "
+      fill="url(#rebel-highlight)"
+      stroke-width="4"
+    />
+  </g>
+
+  <!-- Detalles interiores de las alas -->
+  <g
+    fill="none"
+    stroke="#7f201f"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="5"
+    opacity="0.72"
+  >
+    <path d="M116 106 C99 114 86 130 70 145" />
+    <path d="M110 123 C94 135 83 151 72 166" />
+    <path d="M140 106 C157 114 170 130 186 145" />
+    <path d="M146 123 C162 135 173 151 184 166" />
+    <path d="M128 93 L128 206" />
+  </g>
+
+  <!-- Punto luminoso central -->
+  <circle
+    cx="128"
+    cy="105"
+    r="8"
+    fill="#fff4c2"
+    filter="url(#rebel-glow)"
   />
 </svg>
