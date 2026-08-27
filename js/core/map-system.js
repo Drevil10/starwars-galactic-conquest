@@ -198,8 +198,22 @@ const MapSystem = {
   openCaptureMenu(planet) {
     if (typeof GameState === 'undefined') return;
 
-    const status = TerritorySystem.getPlanetStatus(planet.id);
-    const ownerName = TerritorySystem.getFactionName(planet.owner) || 'Desconocido';
+    // Si TerritorySystem no está disponible, usa lógica básica.
+    let status = 'neutral';
+    let ownerName = 'Desconocido';
+
+    if (window.TerritorySystem) {
+      status = TerritorySystem.getPlanetStatus(planet.id);
+      ownerName = TerritorySystem.getFactionName(planet.owner) || 'Desconocido';
+    } else {
+      const controlled = GameState.getState().controlledPlanets;
+      if (controlled.includes(planet.id)) {
+        status = 'player';
+        ownerName = 'Tú';
+      } else {
+        ownerName = galaxyMap.factions[planet.owner]?.name || 'Desconocido';
+      }
+    }
 
     const message = status === 'player'
       ? `${planet.name} ya está bajo tu control.\n\nDueño actual: ${ownerName}`
@@ -277,11 +291,24 @@ const MapSystem = {
 
   drawPlanets(ctx) {
     const planets = this.planets();
-    const playerCapital = TerritorySystem.getPlayerCapital();
+
+    // Si TerritorySystem no está disponible, usa lógica básica.
+    const useTerritory = window.TerritorySystem && typeof TerritorySystem.getPlayerCapital === 'function';
+
+    const playerCapital = useTerritory ? TerritorySystem.getPlayerCapital() : null;
 
     for (const planet of planets) {
-      const status = TerritorySystem.getPlanetStatus(planet.id);
-      const faction = galaxyMap.factions[planet.owner];
+      let status = 'neutral';
+      let faction = galaxyMap.factions[planet.owner];
+
+      if (useTerritory) {
+        status = TerritorySystem.getPlanetStatus(planet.id);
+      } else {
+        const controlled = typeof GameState !== 'undefined' ? GameState.getState().controlledPlanets : [];
+        if (controlled.includes(planet.id)) {
+          status = 'player';
+        }
+      }
 
       ctx.beginPath();
       ctx.arc(planet.position.x, planet.position.y, 15, 0, Math.PI * 2);
@@ -315,11 +342,20 @@ const MapSystem = {
   },
 
   drawPlanetInfo(ctx, planet) {
-    const status = TerritorySystem.getPlanetStatus(planet.id);
-    const faction = galaxyMap.factions[planet.owner];
-    const resources = TerritorySystem.getPlanetResources(planet.id);
-    const routes = TerritorySystem.getPlanetRoutes(planet.id);
-    const planetType = TerritorySystem.getPlanetType(planet.id);
+    const useTerritory = window.TerritorySystem && typeof TerritorySystem.getPlanetStatus === 'function';
+
+    let status = 'neutral';
+    let faction = galaxyMap.factions[planet.owner];
+    let resources = planet.resources;
+    let routes = planet.routes || [];
+    let planetType = planet.type;
+
+    if (useTerritory) {
+      status = TerritorySystem.getPlanetStatus(planet.id);
+      resources = TerritorySystem.getPlanetResources(planet.id);
+      routes = TerritorySystem.getPlanetRoutes(planet.id);
+      planetType = TerritorySystem.getPlanetType(planet.id);
+    }
 
     const panelWidth = Math.min(280, this.viewport.width - 32);
     const lines = [
