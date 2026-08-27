@@ -1,7 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <image
-    href="https://upload.wikimedia.org/wikipedia/commons/7/75/Emblem_of_the_First_Galactic_Empire.svg"
-    width="512"
-    height="512"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000" preserveAspectRatio="xMidYMid meet">
+  <g transform="translate(500 500) scale(0.92) translate(-500 -500)">
+    <image
+      href="https://upload.wikimedia.org/wikipedia/commons/7/75/Emblem_of_the_First_Galactic_Empire.svg"
+      x="0"
+      y="0"
+      width="1000"
+      height="1000"
+      preserveAspectRatio="xMidYMid meet"
+    />
+  </g>
 </svg>
