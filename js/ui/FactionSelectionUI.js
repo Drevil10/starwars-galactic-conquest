@@ -9,7 +9,9 @@ class FactionSelectionUIClass {
     }
 
     init() {
-        if (this.initialized) return true;
+        if (this.initialized) {
+            return true;
+        }
 
         this.container = document.getElementById('faction-selection');
 
@@ -30,11 +32,14 @@ class FactionSelectionUIClass {
         }
 
         this.initialized = true;
+
         return true;
     }
 
     show(options = {}) {
-        if (!this.init()) return;
+        if (!this.init()) {
+            return;
+        }
 
         this.onFactionSelected = options.onSelect || null;
 
@@ -43,7 +48,9 @@ class FactionSelectionUIClass {
     }
 
     hide() {
-        if (!this.container) return;
+        if (!this.container) {
+            return;
+        }
 
         this.container.style.display = 'none';
     }
@@ -63,7 +70,9 @@ class FactionSelectionUIClass {
                 </div>
 
                 <div class="faction-selection-grid">
-                    ${factions.map(faction => this.createFactionCard(faction)).join('')}
+                    ${factions
+                        .map(faction => this.createFactionCard(faction))
+                        .join('')}
                 </div>
             </div>
         `;
@@ -82,8 +91,19 @@ class FactionSelectionUIClass {
                 style="--faction-color: ${faction.color};"
             >
                 <div class="faction-card-top">
-                    <span class="faction-card-icon">${faction.icon}</span>
-                    <span class="faction-card-name">${faction.name}</span>
+                    <span class="faction-card-icon">
+                        <img
+                            src="${faction.emblem}"
+                            alt="${faction.emblemAlt}"
+                            width="30"
+                            height="30"
+                            style="width:30px; height:30px; object-fit:contain;"
+                        />
+                    </span>
+
+                    <span class="faction-card-name">
+                        ${faction.name}
+                    </span>
                 </div>
 
                 <p class="faction-card-description">
@@ -117,7 +137,9 @@ class FactionSelectionUIClass {
     formatPlanetName(planetId) {
         return planetId
             .split('-')
-            .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+            .map(part => {
+                return part.charAt(0).toUpperCase() + part.slice(1);
+            })
             .join(' ');
     }
 
@@ -128,7 +150,9 @@ class FactionSelectionUIClass {
             button.addEventListener('click', () => {
                 const factionId = button.dataset.factionId;
 
-                if (!factionId) return;
+                if (!factionId) {
+                    return;
+                }
 
                 this.selectFaction(factionId);
             });
