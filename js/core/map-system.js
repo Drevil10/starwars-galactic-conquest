@@ -1,5 +1,5 @@
 // js/core/map-system.js
-// Motor del mapa galáctico compatible con galaxyMap y con el canvas DPR de main.js.
+// Motor del mapa galáctico con TerritorySystem integrado.
 
 const MapSystem = {
   canvas: null,
@@ -21,7 +21,6 @@ const MapSystem = {
 
     if (!this.interactionsBound) this.bindInteractions();
 
-    // Ajustar cámara inicial al cargar.
     setTimeout(() => this.fitToViewport(), 50);
   },
 
@@ -162,7 +161,6 @@ const MapSystem = {
           ) <= 22
       ) || null;
 
-      // Si ya estaba seleccionado, abrir menú de captura.
       if (clickedPlanet && this.selectedPlanet?.id === clickedPlanet.id) {
         this.openCaptureMenu(clickedPlanet);
       } else {
@@ -200,17 +198,14 @@ const MapSystem = {
   openCaptureMenu(planet) {
     if (typeof GameState === 'undefined') return;
 
-    const controlled = GameState.getState().controlledPlanets;
-    const isControlled = controlled.includes(planet.id);
+    const status = TerritorySystem.getPlanetStatus(planet.id);
+    const ownerName = TerritorySystem.getFactionName(planet.owner) || 'Desconocido';
 
-    const ownerName =
-      galaxyMap.factions[planet.owner]?.name || 'Desconocido';
-
-    const message = isControlled
+    const message = status === 'player'
       ? `${planet.name} ya está bajo tu control.\n\nDueño actual: ${ownerName}`
       : `¿Capturar ${planet.name}?\n\nDueño actual: ${ownerName}`;
 
-    if (isControlled) {
+    if (status === 'player') {
       alert(message);
       return;
     }
@@ -219,10 +214,8 @@ const MapSystem = {
 
     if (!confirmed) return;
 
-    // Capturar planeta para el jugador (facción neutral por ahora).
     GameState.addControlledPlanet(planet.id);
 
-    // Actualizar dueño del planeta en galaxyMap (opcional, para reflejar en el mapa).
     if (galaxyMap.factions.player) {
       planet.owner = 'player';
     }
@@ -283,28 +276,35 @@ const MapSystem = {
   },
 
   drawPlanets(ctx) {
-    const controlled =
-      typeof GameState !== 'undefined'
-        ? GameState.getState().controlledPlanets
-        : [];
+    const planets = this.planets();
+    const playerCapital = TerritorySystem.getPlayerCapital();
 
-    for (const planet of this.planets()) {
-      const isControlled = controlled.includes(planet.id);
+    for (const planet of planets) {
+      const status = TerritorySystem.getPlanetStatus(planet.id);
       const faction = galaxyMap.factions[planet.owner];
 
       ctx.beginPath();
       ctx.arc(planet.position.x, planet.position.y, 15, 0, Math.PI * 2);
 
-      // Si está controlado por el jugador, usar color especial.
-      if (isControlled) {
-        ctx.fillStyle = '#4caf50'; // Verde para planetas del jugador.
+      if (status === 'player') {
+        ctx.fillStyle = '#4caf50';
+      } else if (status === 'enemy') {
+        ctx.fillStyle = '#f44336';
       } else {
         ctx.fillStyle = faction ? faction.color : '#666666';
       }
 
       ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
+
+      // Capital del jugador: borde dorado más grueso.
+      if (planet.id === playerCapital) {
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 4;
+      } else {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+      }
+
       ctx.stroke();
 
       ctx.fillStyle = '#ffffff';
@@ -315,41 +315,51 @@ const MapSystem = {
   },
 
   drawPlanetInfo(ctx, planet) {
-    const controlled =
-      typeof GameState !== 'undefined'
-        ? GameState.getState().controlledPlanets
-        : [];
-
-    const isControlled = controlled.includes(planet.id);
+    const status = TerritorySystem.getPlanetStatus(planet.id);
     const faction = galaxyMap.factions[planet.owner];
-    const panelWidth = Math.min(250, this.viewport.width - 32);
+    const resources = TerritorySystem.getPlanetResources(planet.id);
+    const routes = TerritorySystem.getPlanetRoutes(planet.id);
+    const planetType = TerritorySystem.getPlanetType(planet.id);
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.82)';
-    ctx.fillRect(16, 16, panelWidth, isControlled ? 160 : 180);
-    ctx.strokeStyle = isControlled ? '#4caf50' : faction ? faction.color : '#666666';
+    const panelWidth = Math.min(280, this.viewport.width - 32);
+    const lines = [
+      `${planet.name}`,
+      `Tipo: ${planetType}`,
+      `Dueño: ${this.getOwnerLabel(status, faction)}`,
+      `Recursos:`,
+      `  Créditos: ${resources.credits}`,
+      `  Minerales: ${resources.minerals}`,
+      `  Energía: ${resources.energy}`,
+      `  Investigación: ${resources.research}`,
+      `Rutas: ${routes.join(', ') || 'Ninguna'}`
+    ];
+
+    const panelHeight = 40 + lines.length * 22;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(16, 16, panelWidth, panelHeight);
+
+    ctx.strokeStyle = status === 'player' ? '#4caf50' : status === 'enemy' ? '#f44336' : faction ? faction.color : '#666666';
     ctx.lineWidth = 2;
-    ctx.strokeRect(16, 16, panelWidth, isControlled ? 160 : 180);
+    ctx.strokeRect(16, 16, panelWidth, panelHeight);
 
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'left';
     ctx.font = 'bold 16px Arial';
-    ctx.fillText(planet.name, 26, 41);
+    ctx.fillText(lines[0], 26, 41);
 
     ctx.font = '12px Arial';
-    ctx.fillText(`Tipo: ${planet.type}`, 26, 66);
-    ctx.fillText(
-      `Dueño: ${isControlled ? 'Tú' : faction ? faction.name : 'Desconocido'}`,
-      26,
-      86
-    );
-
-    ctx.fillText('Recursos:', 26, isControlled ? 111 : 111);
-    ctx.fillText(`Créditos: ${planet.resources.credits}`, 36, isControlled ? 131 : 131);
-    ctx.fillText(`Minerales: ${planet.resources.minerals}`, 36, isControlled ? 151 : 151);
-
-    if (!isControlled) {
-      ctx.fillText(`Energía: ${planet.resources.energy}`, 36, 171);
+    let y = 66;
+    for (let i = 1; i < lines.length; i++) {
+      ctx.fillText(lines[i], 26, y);
+      y += 22;
     }
+  },
+
+  getOwnerLabel(status, faction) {
+    if (status === 'player') return 'Tú';
+    if (status === 'enemy') return faction ? faction.name : 'Enemigo';
+    return faction && faction.name !== 'Neutral' ? faction.name : 'Neutral';
   }
 };
 
