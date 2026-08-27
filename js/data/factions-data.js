@@ -8,7 +8,9 @@ window.FactionData = {
         shortName: 'Imperio',
         capital: 'coruscant',
         color: '#e53935',
-        icon: '⚔️',
+
+        emblem: 'assets/effects/imperial-symbol.svg',
+        emblemAlt: 'Emblema del Imperio Galáctico',
 
         description:
             'Un poder centralizado con una economía fuerte, defensas sólidas y acceso futuro a la maquinaria militar imperial.',
@@ -57,7 +59,9 @@ window.FactionData = {
         shortName: 'Rebelión',
         capital: 'yavin-iv',
         color: '#43a047',
-        icon: '✦',
+
+        emblem: 'assets/effects/rebel-symbol.svg',
+        emblemAlt: 'Emblema de la Alianza Rebelde',
 
         description:
             'Una alianza de mundos libres que compensa su menor poder militar inicial con movilidad, investigación y determinación.',
