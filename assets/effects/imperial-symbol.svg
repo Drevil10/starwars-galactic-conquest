@@ -2,98 +2,72 @@
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 512 512"
   role="img"
-  aria-labelledby="title desc"
-  fill="none"
+  aria-labelledby="imperialTitle imperialDesc"
 >
-  <title id="title">Emblema del Imperio Galáctico</title>
-  <desc id="desc">Insignia circular imperial de seis radios</desc>
+  <title id="imperialTitle">Símbolo del Imperio Galáctico</title>
+  <desc id="imperialDesc">
+    Emblema imperial circular de seis radios y anillos concéntricos
+  </desc>
 
-  <g fill="currentColor">
-    <!-- Anillo exterior -->
+  <!-- Cambia esta variable desde CSS:
+       .imperial-logo { --imperial-color: #000; }
+  -->
+  <g fill="var(--imperial-color, #000000)">
+    <!-- Anillo exterior: diámetro 488 px, grosor 31 px -->
     <path
       fill-rule="evenodd"
       d="
-        M256 18
-        A238 238 0 1 0 256 494
-        A238 238 0 1 0 256 18
+        M256 12
+        A244 244 0 1 1 256 500
+        A244 244 0 1 1 256 12
         Z
 
-        M256 48
-        A208 208 0 1 1 256 464
-        A208 208 0 1 1 256 48
+        M256 43
+        A213 213 0 1 0 256 469
+        A213 213 0 1 0 256 43
         Z
       "
     />
 
-    <!-- Cuerpo interior -->
-    <circle cx="256" cy="256" r="157" />
+    <!-- Anillo interior negro -->
+    <circle cx="256" cy="256" r="174" />
 
-    <!-- Huecos del anillo interior -->
-    <g fill="#fff">
-      <rect x="241" y="50" width="30" height="48" rx="2" />
-      <rect x="241" y="414" width="30" height="48" rx="2" />
-
-      <rect
-        x="241"
-        y="50"
-        width="30"
-        height="48"
-        rx="2"
-        transform="rotate(60 256 256)"
-      />
-      <rect
-        x="241"
-        y="414"
-        width="30"
-        height="48"
-        rx="2"
-        transform="rotate(60 256 256)"
-      />
-
-      <rect
-        x="241"
-        y="50"
-        width="30"
-        height="48"
-        rx="2"
-        transform="rotate(120 256 256)"
-      />
-      <rect
-        x="241"
-        y="414"
-        width="30"
-        height="48"
-        rx="2"
-        transform="rotate(120 256 256)"
-      />
+    <!-- Seis huecos rectangulares del anillo interior -->
+    <g fill="#ffffff">
+      <path d="M238 45 H274 V91 H238 Z" />
+      <path d="M238 45 H274 V91 H238 Z" transform="rotate(60 256 256)" />
+      <path d="M238 45 H274 V91 H238 Z" transform="rotate(120 256 256)" />
+      <path d="M238 45 H274 V91 H238 Z" transform="rotate(180 256 256)" />
+      <path d="M238 45 H274 V91 H238 Z" transform="rotate(240 256 256)" />
+      <path d="M238 45 H274 V91 H238 Z" transform="rotate(300 256 256)" />
     </g>
 
-    <!-- Seis radios blancos -->
-    <g fill="#fff">
-      <path d="M239 256 L223 117 L289 117 L273 256 Z" />
+    <!-- Seis radios: base exterior más ancha y unión estrecha al núcleo -->
+    <g fill="#ffffff">
+      <path d="M222 113 H290 L275 209 Q256 195 237 209 Z" />
       <path
-        d="M239 256 L223 117 L289 117 L273 256 Z"
+        d="M222 113 H290 L275 209 Q256 195 237 209 Z"
         transform="rotate(60 256 256)"
       />
       <path
-        d="M239 256 L223 117 L289 117 L273 256 Z"
+        d="M222 113 H290 L275 209 Q256 195 237 209 Z"
         transform="rotate(120 256 256)"
       />
       <path
-        d="M239 256 L223 117 L289 117 L273 256 Z"
+        d="M222 113 H290 L275 209 Q256 195 237 209 Z"
         transform="rotate(180 256 256)"
       />
       <path
-        d="M239 256 L223 117 L289 117 L273 256 Z"
+        d="M222 113 H290 L275 209 Q256 195 237 209 Z"
         transform="rotate(240 256 256)"
       />
       <path
-        d="M239 256 L223 117 L289 117 L273 256 Z"
+        d="M222 113 H290 L275 209 Q256 195 237 209 Z"
         transform="rotate(300 256 256)"
       />
 
-      <!-- Núcleo central -->
-      <circle cx="256" cy="256" r="58" />
+      <!-- Núcleo blanco, superpuesto para una unión limpia -->
+      <circle cx="256" cy="256" r="61" />
     </g>
   </g>
 </svg>
