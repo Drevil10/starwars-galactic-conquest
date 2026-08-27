@@ -1,173 +1,36 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  viewBox="0 0 256 256"
+  viewBox="0 0 300 300"
   role="img"
-  aria-labelledby="title desc"
+  aria-label="Emblema de la Alianza Rebelde"
 >
-  <title id="title">Emblema de la Alianza Rebelde</title>
-  <desc id="desc">
-    Emblema estilizado de un ave fénix con alas abiertas para la Alianza Rebelde.
-  </desc>
-
-  <defs>
-    <linearGradient id="rebel-orange" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#ffe083" />
-      <stop offset="38%" stop-color="#ffb52d" />
-      <stop offset="72%" stop-color="#f26a21" />
-      <stop offset="100%" stop-color="#d9362c" />
-    </linearGradient>
-
-    <linearGradient id="rebel-highlight" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fff1b8" />
-      <stop offset="100%" stop-color="#ffb52d" />
-    </linearGradient>
-
-    <filter id="rebel-glow" x="-35%" y="-35%" width="170%" height="170%">
-      <feGaussianBlur stdDeviation="4" result="blur" />
-      <feMerge>
-        <feMergeNode in="blur" />
-        <feMergeNode in="SourceGraphic" />
-      </feMerge>
-    </filter>
-  </defs>
-
-  <g
-    fill="url(#rebel-orange)"
-    stroke="#ffdb6e"
-    stroke-linejoin="round"
-    stroke-linecap="round"
-  >
-    <!-- Ala izquierda -->
-    <path
-      d="
-        M124 87
-        C111 91 101 98 91 107
-        C81 116 70 120 54 120
-        L29 118
-        L49 133
-        L25 139
-        L53 147
-        L34 162
-        L67 158
-        L55 178
-        L83 165
-        L79 190
-        L101 168
-        C108 160 115 150 121 139
-        L128 116
-        Z
-      "
-      stroke-width="5"
-    />
-
-    <!-- Ala derecha -->
-    <path
-      d="
-        M132 87
-        C145 91 155 98 165 107
-        C175 116 186 120 202 120
-        L227 118
-        L207 133
-        L231 139
-        L203 147
-        L222 162
-        L189 158
-        L201 178
-        L173 165
-        L177 190
-        L155 168
-        C148 160 141 150 135 139
-        L128 116
-        Z
-      "
-      stroke-width="5"
-    />
-
-    <!-- Cuerpo, cabeza y cresta -->
-    <path
-      d="
-        M128 19
-        L140 53
-        L157 43
-        L151 72
-        L174 67
-        L157 93
-        C149 105 143 116 140 130
-        L137 147
-        L151 137
-        L146 163
-        L161 158
-        L151 185
-        L169 181
-        L151 211
-        L128 238
-        L105 211
-        L87 181
-        L105 185
-        L95 158
-        L110 163
-        L105 137
-        L119 147
-        L116 130
-        C113 116 107 105 99 93
-        L82 67
-        L105 72
-        L99 43
-        L116 53
-        Z
-      "
-      stroke-width="5"
-    />
-
-    <!-- Punta de la cabeza -->
-    <path
-      d="
-        M128 19
-        L139 65
-        L128 83
-        L117 65
-        Z
-      "
-      fill="url(#rebel-highlight)"
-      stroke-width="4"
-    />
-
-    <!-- Cola -->
-    <path
-      d="
-        M128 151
-        L141 191
-        L128 237
-        L115 191
-        Z
-      "
-      fill="url(#rebel-highlight)"
-      stroke-width="4"
-    />
-  </g>
-
-  <!-- Detalles interiores de las alas -->
-  <g
-    fill="none"
-    stroke="#7f201f"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    stroke-width="5"
-    opacity="0.72"
-  >
-    <path d="M116 106 C99 114 86 130 70 145" />
-    <path d="M110 123 C94 135 83 151 72 166" />
-    <path d="M140 106 C157 114 170 130 186 145" />
-    <path d="M146 123 C162 135 173 151 184 166" />
-    <path d="M128 93 L128 206" />
-  </g>
-
-  <!-- Punto luminoso central -->
-  <circle
-    cx="128"
-    cy="105"
-    r="8"
-    fill="#fff4c2"
-    filter="url(#rebel-glow)"
+  <path
+    fill="#f5a623"
+    d="
+      M7.42,145.986
+      C9.185,99.193,32.899,56.035,76.25,27.516
+      c0.128,0.048,1.251-0.361,0.738,0.61
+      c-3.434,3.184-65.172,76.114-8.344,133.68
+      c0,0,29.858,28.704,53.011,1.468
+      c0,0,22.847-29.577-0.289-74.413
+      c0,0-5.856-14.64-26.955-23.721
+      l16.992-18.748
+      c0,0,14.359,6.161,25.478,22.871
+      c0,0,0.593-17.593-12.884-36.34
+      l26.345-29.89
+      l26.08,29.609
+      c0,0-11.993,16.991-12.876,36.902
+      c0,0,8.191-13.477,25.776-23.151
+      l16.686,18.748
+      c0,0-16.045,5.287-26.794,23.529
+      c-9.242,16.902-16.357,53.05,0.416,75.223
+      c0,0,18.772,26.618,51.792-1.571
+      c0,0,60.712-54.399-6.226-133.048
+      c0,0-3.658-3.233,0.449-1.476
+      c29.586,21.54,65.012,49.946,68.67,120.837
+      c-1.444,85.966-59.012,147.334-143.074,147.334
+      C68.934,295.968,4.95,227.283,7.42,145.986
+      Z
+    "
   />
 </svg>
