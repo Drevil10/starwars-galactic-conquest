@@ -1,57 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <title>Emblema del Imperio Galáctico</title>
 
-  <!-- Anillo exterior negro -->
+  <!-- Anillo exterior negro: más fino -->
   <circle cx="256" cy="256" r="246" fill="#000000"/>
 
-  <!-- Espacio blanco entre anillo exterior y rueda interior -->
-  <circle cx="256" cy="256" r="211" fill="#ffffff"/>
+  <!-- Hueco interior del anillo exterior -->
+  <circle cx="256" cy="256" r="218" fill="#ffffff"/>
 
-  <!-- Cuerpo circular negro interior -->
-  <circle cx="256" cy="256" r="174" fill="#000000"/>
+  <!-- Rueda negra central: más dominante -->
+  <circle cx="256" cy="256" r="178" fill="#000000"/>
 
-  <!--
-    Seis radios negros exteriores pequeños.
-    Van desde la cara interior del anillo exterior
-    hasta los trapecios negros de la rueda.
-  -->
+  <!-- Seis radios negros finos entre el anillo y los trapecios -->
   <g fill="#000000">
-    <path d="M239 42H273V72H239Z"/>
-    <path d="M239 42H273V72H239Z" transform="rotate(60 256 256)"/>
-    <path d="M239 42H273V72H239Z" transform="rotate(120 256 256)"/>
-    <path d="M239 42H273V72H239Z" transform="rotate(180 256 256)"/>
-    <path d="M239 42H273V72H239Z" transform="rotate(240 256 256)"/>
-    <path d="M239 42H273V72H239Z" transform="rotate(300 256 256)"/>
+    <path d="M245 38H267V71H245Z"/>
+    <path d="M245 38H267V71H245Z" transform="rotate(60 256 256)"/>
+    <path d="M245 38H267V71H245Z" transform="rotate(120 256 256)"/>
+    <path d="M245 38H267V71H245Z" transform="rotate(180 256 256)"/>
+    <path d="M245 38H267V71H245Z" transform="rotate(240 256 256)"/>
+    <path d="M245 38H267V71H245Z" transform="rotate(300 256 256)"/>
   </g>
 
-  <!--
-    Seis trapecios negros.
-    Forman las conexiones gruesas entre el anillo
-    y el cuerpo circular central.
-  -->
+  <!-- Seis trapecios negros gruesos -->
   <g fill="#000000">
-    <path d="M228 66H284L295 116H217Z"/>
-    <path d="M228 66H284L295 116H217Z" transform="rotate(60 256 256)"/>
-    <path d="M228 66H284L295 116H217Z" transform="rotate(120 256 256)"/>
-    <path d="M228 66H284L295 116H217Z" transform="rotate(180 256 256)"/>
-    <path d="M228 66H284L295 116H217Z" transform="rotate(240 256 256)"/>
-    <path d="M228 66H284L295 116H217Z" transform="rotate(300 256 256)"/>
+    <path d="M222 69H290L299 121H213Z"/>
+    <path d="M222 69H290L299 121H213Z" transform="rotate(60 256 256)"/>
+    <path d="M222 69H290L299 121H213Z" transform="rotate(120 256 256)"/>
+    <path d="M222 69H290L299 121H213Z" transform="rotate(180 256 256)"/>
+    <path d="M222 69H290L299 121H213Z" transform="rotate(240 256 256)"/>
+    <path d="M222 69H290L299 121H213Z" transform="rotate(300 256 256)"/>
   </g>
 
-  <!--
-    Seis radios interiores blancos, ahora más anchos.
-    El extremo exterior es ancho y se estrecha
-    progresivamente al llegar al núcleo central.
-  -->
+  <!-- Seis radios blancos interiores: más finos -->
   <g fill="#ffffff">
-    <path d="M211 112H301L282 193L272 220Q256 208 240 220L230 193Z"/>
-    <path d="M211 112H301L282 193L272 220Q256 208 240 220L230 193Z" transform="rotate(60 256 256)"/>
-    <path d="M211 112H301L282 193L272 220Q256 208 240 220L230 193Z" transform="rotate(120 256 256)"/>
-    <path d="M211 112H301L282 193L272 220Q256 208 240 220L230 193Z" transform="rotate(180 256 256)"/>
-    <path d="M211 112H301L282 193L272 220Q256 208 240 220L230 193Z" transform="rotate(240 256 256)"/>
-    <path d="M211 112H301L282 193L272 220Q256 208 240 220L230 193Z" transform="rotate(300 256 256)"/>
+    <path d="M226 116H286L272 197L267 216Q256 208 245 216L240 197Z"/>
+    <path d="M226 116H286L272 197L267 216Q256 208 245 216L240 197Z" transform="rotate(60 256 256)"/>
+    <path d="M226 116H286L272 197L267 216Q256 208 245 216L240 197Z" transform="rotate(120 256 256)"/>
+    <path d="M226 116H286L272 197L267 216Q256 208 245 216L240 197Z" transform="rotate(180 256 256)"/>
+    <path d="M226 116H286L272 197L267 216Q256 208 245 216L240 197Z" transform="rotate(240 256 256)"/>
+    <path d="M226 116H286L272 197L267 216Q256 208 245 216L240 197Z" transform="rotate(300 256 256)"/>
 
-    <!-- Núcleo central blanco -->
-    <circle cx="256" cy="256" r="63"/>
+    <!-- Centro blanco: contenido para dejar más negro visible -->
+    <circle cx="256" cy="256" r="57"/>
   </g>
 </svg>
