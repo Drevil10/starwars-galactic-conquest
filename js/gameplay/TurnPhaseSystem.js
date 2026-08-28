@@ -3,11 +3,32 @@
 
 const TurnPhaseSystem = {
   phases: [
-    { id: 'command', label: 'Mando', tab: 'map' },
-    { id: 'construction', label: 'Construir', tab: 'build' },
-    { id: 'research', label: 'Investigar', tab: 'research' },
-    { id: 'military', label: 'Militar', tab: 'military' }
+    {
+      id: 'command',
+      label: 'Mando',
+      compactLabel: 'Mando',
+      tab: 'map'
+    },
+    {
+      id: 'construction',
+      label: 'Construir',
+      compactLabel: 'Const.',
+      tab: 'build'
+    },
+    {
+      id: 'research',
+      label: 'Investigar',
+      compactLabel: 'Invest.',
+      tab: 'research'
+    },
+    {
+      id: 'military',
+      label: 'Militar',
+      compactLabel: 'Militar',
+      tab: 'military'
+    }
   ],
+
   commandPointsPerTurn: 3,
   installed: false,
   originalNextTurn: null,
@@ -15,9 +36,17 @@ const TurnPhaseSystem = {
   originalUpdateTurnUI: null,
 
   install() {
-    if (this.installed || typeof GameState === 'undefined' || typeof TurnSystem === 'undefined' || typeof CampaignSystem === 'undefined') return;
+    if (
+      this.installed ||
+      typeof GameState === 'undefined' ||
+      typeof TurnSystem === 'undefined' ||
+      typeof CampaignSystem === 'undefined'
+    ) {
+      return;
+    }
 
     this.installed = true;
+
     this.patchCampaignStart();
     this.patchTurnAdvance();
     this.patchTurnLabel();
@@ -25,7 +54,9 @@ const TurnPhaseSystem = {
   },
 
   patchCampaignStart() {
-    this.originalStartCampaign = CampaignSystem.startCampaign.bind(CampaignSystem);
+    this.originalStartCampaign = CampaignSystem.startCampaign.bind(
+      CampaignSystem
+    );
 
     CampaignSystem.startCampaign = factionId => {
       const result = this.originalStartCampaign(factionId);
@@ -37,7 +68,8 @@ const TurnPhaseSystem = {
           completedPhases: [],
           turnLog: []
         });
-        setTimeout(() => this.refreshUI(), 0);
+
+        this.scheduleUIRefresh();
       }
 
       return result;
@@ -50,21 +82,34 @@ const TurnPhaseSystem = {
     TurnSystem.nextTurn = () => {
       const state = GameState.getState();
       const phase = state.turnPhase || 'command';
-      const currentIndex = this.phases.findIndex(item => item.id === phase);
+
+      const currentIndex = this.phases.findIndex(
+        item => item.id === phase
+      );
+
       const nextIndex = currentIndex + 1;
 
       if (nextIndex < this.phases.length) {
         const nextPhase = this.phases[nextIndex];
-        const completedPhases = [...new Set([...(state.completedPhases || []), phase])];
+
+        const completedPhases = [
+          ...new Set([
+            ...(state.completedPhases || []),
+            phase
+          ])
+        ];
 
         GameState.setState({
           turnPhase: nextPhase.id,
           completedPhases,
-          turnLog: [...(state.turnLog || []), `Fase completada: ${this.getPhaseLabel(phase)}`]
+          turnLog: [
+            ...(state.turnLog || []),
+            `Fase completada: ${this.getPhaseLabel(phase)}`
+          ]
         });
 
         this.openPhaseTab(nextPhase.tab);
-        this.refreshUI();
+        this.scheduleUIRefresh();
 
         return {
           turn: state.turn,
@@ -81,11 +126,13 @@ const TurnPhaseSystem = {
         turnPhase: 'command',
         commandPoints: this.commandPointsPerTurn,
         completedPhases: [],
-        turnLog: [`Turno ${nextTurn}: fase de Mando iniciada.`]
+        turnLog: [
+          `Turno ${nextTurn}: fase de Mando iniciada.`
+        ]
       });
 
       this.openPhaseTab('map');
-      this.refreshUI();
+      this.scheduleUIRefresh();
 
       return {
         ...result,
@@ -101,42 +148,81 @@ const TurnPhaseSystem = {
 
     GameState.updateTurnUI = () => {
       this.originalUpdateTurnUI();
-      this.refreshUI();
+      this.scheduleUIRefresh();
     };
   },
 
+  getPhase(phaseId) {
+    return this.phases.find(item => item.id === phaseId) || this.phases[0];
+  },
+
   getPhaseLabel(phaseId) {
-    return this.phases.find(phase => phase.id === phaseId)?.label || 'Mando';
+    return this.getPhase(phaseId).label;
+  },
+
+  getCompactPhaseLabel(phaseId) {
+    return this.getPhase(phaseId).compactLabel;
   },
 
   getCurrentPhase() {
-    if (typeof GameState === 'undefined') return 'command';
+    if (typeof GameState === 'undefined') {
+      return 'command';
+    }
+
     return GameState.getState().turnPhase || 'command';
   },
 
   openPhaseTab(tabId) {
-    const tab = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
-    if (tab) tab.click();
+    const tab = document.querySelector(
+      `.nav-btn[data-tab="${tabId}"]`
+    );
+
+    if (tab) {
+      tab.click();
+    }
+  },
+
+  scheduleUIRefresh() {
+    window.setTimeout(() => {
+      this.refreshUI();
+    }, 0);
   },
 
   refreshUI() {
-    if (typeof GameState === 'undefined') return;
+    if (typeof GameState === 'undefined') {
+      return;
+    }
 
     const state = GameState.getState();
+
     const turnEl = document.getElementById('turn-info');
     const turnButton = document.getElementById('next-turn-btn');
 
-    if (!turnEl || !turnButton || state.gameState !== 'playing') return;
+    if (!turnEl || !turnButton || state.gameState !== 'playing') {
+      return;
+    }
 
     const phase = state.turnPhase || 'command';
     const label = this.getPhaseLabel(phase);
-    const points = Number.isFinite(state.commandPoints) ? state.commandPoints : this.commandPointsPerTurn;
+    const compactLabel = this.getCompactPhaseLabel(phase);
 
-    turnEl.textContent = `T${state.turn} · ${label}`;
-    turnButton.setAttribute('aria-label', `Turno ${state.turn}, fase ${label}, ${points} puntos de mando disponibles`);
+    const points = Number.isFinite(state.commandPoints)
+      ? state.commandPoints
+      : this.commandPointsPerTurn;
+
+    turnEl.textContent = `T${state.turn} · ${compactLabel}`;
+
+    turnButton.setAttribute(
+      'aria-label',
+      `Turno ${state.turn}, fase ${label}, ${points} puntos de mando disponibles`
+    );
+
     turnButton.dataset.phase = phase;
   }
 };
 
 window.TurnPhaseSystem = TurnPhaseSystem;
-window.addEventListener('load', () => TurnPhaseSystem.install());
+
+window.addEventListener('load', () => {
+  TurnPhaseSystem.install();
+});
