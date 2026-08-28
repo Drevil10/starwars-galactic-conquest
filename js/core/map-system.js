@@ -29,7 +29,28 @@ const MapSystem = {
     mandalorians: 'assets/effects/mandalorian-symbol.svg'
   },
 
+  planetEmblems: {
+    'ahch-to': 'assets/locations/ahch-to.svg',
+    bespin: 'assets/locations/bespin.svg',
+    coruscant: 'assets/locations/coruscant.svg',
+    crait: 'assets/locations/crait.svg',
+    endor: 'assets/locations/endor.svg',
+    exegol: 'assets/locations/exegol.svg',
+    geonosis: 'assets/locations/geonosis.svg',
+    hoth: 'assets/locations/hoth.svg',
+    jedha: 'assets/locations/jedha.svg',
+    kamino: 'assets/locations/kamino.svg',
+    kashyyyk: 'assets/locations/kashyyyk.svg',
+    mandalore: 'assets/locations/mandalore.svg',
+    mustafar: 'assets/locations/mustafar.svg',
+    naboo: 'assets/locations/naboo.svg',
+    scarif: 'assets/locations/scarif.svg',
+    tatooine: 'assets/locations/tatooine.svg',
+    utapau: 'assets/locations/utapau.svg'
+  },
+
   factionImages: {},
+  planetImages: {},
 
   init(canvas) {
     const target = canvas || document.getElementById('game-canvas');
@@ -312,6 +333,14 @@ const MapSystem = {
     );
   },
 
+  getPlanetImage(planetId) {
+    return this.getImage(
+      this.planetImages,
+      planetId,
+      this.planetEmblems[planetId]
+    );
+  },
+
   drawIconFrame(ctx, x, y, size, borderColor = '#2f80ed') {
     ctx.save();
 
@@ -325,7 +354,7 @@ const MapSystem = {
     ctx.restore();
   },
 
-  drawPlanetBadge(ctx, x, y, size, planet, status) {
+  drawGenericPlanet(ctx, x, y, size, planet, status) {
     const faction = this.getFaction(planet);
 
     const planetColor = this.getStatusColor(
@@ -334,32 +363,18 @@ const MapSystem = {
     );
 
     const centerX = x + size / 2;
-    const centerY = y + size / 2;
+    const centerY = y + size / 2 - 2;
     const radius = size * 0.27;
-
-    this.drawIconFrame(
-      ctx,
-      x,
-      y,
-      size,
-      '#2f80ed'
-    );
 
     ctx.save();
 
     ctx.beginPath();
-    ctx.arc(
-      centerX,
-      centerY - 2,
-      radius,
-      0,
-      Math.PI * 2
-    );
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
     ctx.clip();
 
     const gradient = ctx.createRadialGradient(
       centerX - radius * 0.4,
-      centerY - radius * 0.55,
+      centerY - radius * 0.45,
       radius * 0.08,
       centerX,
       centerY,
@@ -378,7 +393,7 @@ const MapSystem = {
     ctx.beginPath();
     ctx.ellipse(
       centerX + radius * 0.42,
-      centerY - 2,
+      centerY,
       radius * 0.72,
       radius * 1.1,
       -0.2,
@@ -404,37 +419,69 @@ const MapSystem = {
     ctx.save();
 
     ctx.beginPath();
-    ctx.arc(
-      centerX,
-      centerY - 2,
-      radius,
-      0,
-      Math.PI * 2
-    );
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
 
     ctx.strokeStyle = '#d4e8ff';
     ctx.lineWidth = 1.2;
     ctx.stroke();
 
-    ctx.fillStyle = '#8fa5cc';
-    ctx.font = 'bold 5px Arial';
-    ctx.textAlign = 'center';
+    ctx.restore();
+  },
 
-    ctx.fillText(
-      this.fitText(
-        ctx,
-        planet.name.toUpperCase(),
-        size - 6
-      ),
-      centerX,
-      y + size - 5
+  drawPlanetBadge(ctx, x, y, size, planet, status) {
+    const planetImage = this.getPlanetImage(planet.id);
+    const padding = 3;
+
+    this.drawIconFrame(
+      ctx,
+      x,
+      y,
+      size,
+      '#2f80ed'
     );
 
-    ctx.restore();
+    if (
+      planetImage &&
+      planetImage.complete &&
+      planetImage.naturalWidth
+    ) {
+      ctx.save();
+
+      ctx.beginPath();
+      ctx.rect(
+        x + padding,
+        y + padding,
+        size - padding * 2,
+        size - padding * 2
+      );
+      ctx.clip();
+
+      ctx.drawImage(
+        planetImage,
+        x + padding,
+        y + padding,
+        size - padding * 2,
+        size - padding * 2
+      );
+
+      ctx.restore();
+
+      return;
+    }
+
+    this.drawGenericPlanet(
+      ctx,
+      x,
+      y,
+      size,
+      planet,
+      status
+    );
   },
 
   drawFactionBadge(ctx, x, y, size, factionId) {
     const factionImage = this.getFactionImage(factionId);
+    const padding = 5;
 
     this.drawIconFrame(
       ctx,
@@ -449,8 +496,6 @@ const MapSystem = {
       factionImage.complete &&
       factionImage.naturalWidth
     ) {
-      const padding = 5;
-
       ctx.save();
 
       ctx.drawImage(
