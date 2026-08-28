@@ -29,7 +29,43 @@ const MapSystem = {
     mandalorians: 'assets/effects/mandalorian-symbol.svg'
   },
 
-  emblemImages: {},
+  planetEmblems: {
+    coruscant: 'assets/locations/coruscant.svg',
+    corellia: 'assets/locations/corellia.svg',
+    alderaan: 'assets/locations/alderaan.svg',
+    tatooine: 'assets/locations/tatooine.svg',
+    naboo: 'assets/locations/naboo.svg',
+    kamino: 'assets/locations/kamino.svg',
+    geonosis: 'assets/locations/geonosis.svg',
+    utapau: 'assets/locations/utapau.svg',
+    mustafar: 'assets/locations/mustafar.svg',
+    kashyyyk: 'assets/locations/kashyyyk.svg',
+    ryloth: 'assets/locations/ryloth.svg',
+    lothal: 'assets/locations/lothal.svg',
+    mandalore: 'assets/locations/mandalore.svg',
+    hoth: 'assets/locations/hoth.svg',
+    endor: 'assets/locations/endor.svg',
+    jakku: 'assets/locations/jakku.svg',
+    bespin: 'assets/locations/bespin.svg',
+    scarif: 'assets/locations/scarif.svg',
+    jedha: 'assets/locations/jedha.svg',
+    'ahch-to': 'assets/locations/ahch-to.svg',
+    crait: 'assets/locations/crait.svg',
+    exegol: 'assets/locations/exegol.svg',
+    dathomir: 'assets/locations/dathomir.svg',
+    'yavin-iv': 'assets/locations/yavin-iv.svg',
+    ilum: 'assets/locations/ilum.svg',
+    moraband: 'assets/locations/moraband.svg',
+    'yavin-prime': 'assets/locations/yavin-prime.svg',
+    kessel: 'assets/locations/kessel.svg',
+    'naboo-moon': 'assets/locations/naboo-moon.svg',
+    sullust: 'assets/locations/sullust.svg',
+    felucia: 'assets/locations/felucia.svg',
+    'ord-mantell': 'assets/locations/ord-mantell.svg'
+  },
+
+  factionImages: {},
+  planetImages: {},
 
   init(canvas) {
     const target = canvas || document.getElementById('game-canvas');
@@ -279,15 +315,13 @@ const MapSystem = {
     return planet.owner;
   },
 
-  getEmblemImage(factionId) {
-    const path = this.factionEmblems[factionId];
-
+  getImage(cache, cacheKey, path) {
     if (!path) {
       return null;
     }
 
-    if (this.emblemImages[factionId]) {
-      return this.emblemImages[factionId];
+    if (cache[cacheKey]) {
+      return cache[cacheKey];
     }
 
     const image = new Image();
@@ -297,17 +331,53 @@ const MapSystem = {
     };
 
     image.onerror = () => {
-      delete this.emblemImages[factionId];
+      delete cache[cacheKey];
     };
 
     image.src = path;
-
-    this.emblemImages[factionId] = image;
+    cache[cacheKey] = image;
 
     return image;
   },
 
-  drawFactionEmblem(
+  getFactionImage(factionId) {
+    return this.getImage(
+      this.factionImages,
+      factionId,
+      this.factionEmblems[factionId]
+    );
+  },
+
+  getPlanetImage(planetId) {
+    return this.getImage(
+      this.planetImages,
+      planetId,
+      this.planetEmblems[planetId]
+    );
+  },
+
+  drawIconFrame(ctx, x, y, size, borderColor = '#2f80ed') {
+    ctx.fillStyle = 'rgba(7, 17, 40, 0.94)';
+
+    ctx.fillRect(
+      x - 4,
+      y - 4,
+      size + 8,
+      size + 8
+    );
+
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 2;
+
+    ctx.strokeRect(
+      x - 4,
+      y - 4,
+      size + 8,
+      size + 8
+    );
+  },
+
+  drawPanelIcons(
     ctx,
     planet,
     status,
@@ -315,67 +385,65 @@ const MapSystem = {
     panelY,
     panelWidth
   ) {
+    const iconSize = 32;
+    const gap = 10;
+    const rightMargin = 14;
+
     const factionId = this.getFactionEmblemKey(
       planet,
       status
     );
 
-    if (!this.factionEmblems[factionId]) {
-      return;
-    }
+    const planetImage = this.getPlanetImage(planet.id);
+    const factionImage = this.getFactionImage(factionId);
 
-    const image = this.getEmblemImage(factionId);
-
-    if (
-      !image ||
-      !image.complete ||
-      !image.naturalWidth
-    ) {
-      return;
-    }
-
-    // El emblema queda totalmente a la derecha.
-    const emblemSize = 32;
-    const rightMargin = 14;
-
-    const emblemX =
+    const factionX =
       panelX +
       panelWidth -
-      emblemSize -
+      iconSize -
       rightMargin;
 
-    const emblemY = panelY + 14;
+    const planetX =
+      factionX -
+      iconSize -
+      gap;
+
+    const iconY = panelY + 14;
 
     ctx.save();
-
     ctx.globalAlpha = 0.96;
 
-    ctx.fillStyle = 'rgba(7, 17, 40, 0.94)';
+    if (
+      planetImage &&
+      planetImage.complete &&
+      planetImage.naturalWidth
+    ) {
+      this.drawIconFrame(ctx, planetX, iconY);
 
-    ctx.fillRect(
-      emblemX - 4,
-      emblemY - 4,
-      emblemSize + 8,
-      emblemSize + 8
-    );
+      ctx.drawImage(
+        planetImage,
+        planetX,
+        iconY,
+        iconSize,
+        iconSize
+      );
+    }
 
-    ctx.strokeStyle = '#2f80ed';
-    ctx.lineWidth = 2;
+    if (
+      factionImage &&
+      factionImage.complete &&
+      factionImage.naturalWidth
+    ) {
+      this.drawIconFrame(ctx, factionX, iconY);
 
-    ctx.strokeRect(
-      emblemX - 4,
-      emblemY - 4,
-      emblemSize + 8,
-      emblemSize + 8
-    );
-
-    ctx.drawImage(
-      image,
-      emblemX,
-      emblemY,
-      emblemSize,
-      emblemSize
-    );
+      ctx.drawImage(
+        factionImage,
+        factionX,
+        iconY,
+        iconSize,
+        iconSize
+      );
+    }
 
     ctx.restore();
   },
@@ -608,7 +676,6 @@ const MapSystem = {
         }) || null;
 
       this.selectedPlanet = clickedPlanet;
-
       this.render();
     }
 
@@ -811,12 +878,12 @@ const MapSystem = {
       faction?.color || '#666666'
     );
 
-    const emblemSize = 32;
+    // Espacio reservado para los dos iconos superiores.
+    const topIconSpace = 32 * 2 + 10 + 22;
 
     const titleMaxWidth =
       panelWidth -
-      emblemSize -
-      50;
+      topIconSpace;
 
     ctx.fillStyle = 'rgba(3, 7, 25, 0.94)';
 
@@ -837,7 +904,8 @@ const MapSystem = {
       panelHeight
     );
 
-    this.drawFactionEmblem(
+    // Icono del planeta a la izquierda y emblema de facción a la derecha.
+    this.drawPanelIcons(
       ctx,
       planet,
       status,
