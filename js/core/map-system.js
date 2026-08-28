@@ -1,5 +1,5 @@
 // js/core/map-system.js
-// Motor del mapa galáctico con TerritorySystem integrado.
+// Motor del mapa galáctico con territorios, capitales y panel de Mando.
 
 const MapSystem = {
   canvas: null,
@@ -14,53 +14,295 @@ const MapSystem = {
   init(canvas) {
     const target = canvas || document.getElementById('game-canvas');
 
-    if (!target) return;
+    if (!target) {
+      return;
+    }
 
     this.canvas = target;
     this.ctx = target.getContext('2d');
 
-    if (!this.interactionsBound) this.bindInteractions();
+    if (!this.interactionsBound) {
+      this.bindInteractions();
+    }
 
-    setTimeout(() => this.fitToViewport(), 50);
+    setTimeout(() => {
+      this.fitToViewport();
+    }, 50);
   },
 
   planets() {
-    return window.galaxyMap && Array.isArray(galaxyMap.systems)
-      ? galaxyMap.systems.flatMap(system => system.planets || [])
-      : [];
+    if (
+      !window.galaxyMap ||
+      !Array.isArray(window.galaxyMap.systems)
+    ) {
+      return [];
+    }
+
+    return window.galaxyMap.systems.flatMap(
+      system => system.planets || []
+    );
+  },
+
+  getPlanetById(planetId) {
+    return this.planets().find(
+      planet => planet.id === planetId
+    ) || null;
+  },
+
+  getTerritoryStatus(planet) {
+    if (
+      window.TerritorySystem &&
+      typeof TerritorySystem.getPlanetStatus === 'function'
+    ) {
+      return TerritorySystem.getPlanetStatus(planet.id);
+    }
+
+    const controlled =
+      typeof GameState !== 'undefined'
+        ? GameState.getState().controlledPlanets
+        : [];
+
+    return controlled.includes(planet.id)
+      ? 'player'
+      : 'neutral';
+  },
+
+  getPlayerCapital() {
+    if (
+      window.TerritorySystem &&
+      typeof TerritorySystem.getPlayerCapital === 'function'
+    ) {
+      return TerritorySystem.getPlayerCapital();
+    }
+
+    return null;
+  },
+
+  getFaction(planet) {
+    if (
+      !window.galaxyMap ||
+      !window.galaxyMap.factions
+    ) {
+      return null;
+    }
+
+    return galaxyMap.factions[planet.owner] || null;
+  },
+
+  getFactionName(planet) {
+    if (
+      window.TerritorySystem &&
+      typeof TerritorySystem.getFactionName === 'function'
+    ) {
+      return TerritorySystem.getFactionName(planet.owner);
+    }
+
+    return this.getFaction(planet)?.name || 'Neutral';
+  },
+
+  getOwnerLabel(planet, status) {
+    if (status === 'player') {
+      return 'Tú';
+    }
+
+    const factionName = this.getFactionName(planet);
+
+    if (status === 'enemy') {
+      return factionName || 'Enemigo';
+    }
+
+    return factionName === 'Neutral'
+      ? 'Neutral'
+      : factionName || 'Neutral';
+  },
+
+  getStatusLabel(status) {
+    if (status === 'player') {
+      return 'TU TERRITORIO';
+    }
+
+    if (status === 'enemy') {
+      return 'SISTEMA ENEMIGO';
+    }
+
+    return 'SISTEMA NEUTRAL';
+  },
+
+  getStatusColor(status, fallbackColor = '#666666') {
+    if (status === 'player') {
+      return '#4caf50';
+    }
+
+    if (status === 'enemy') {
+      return '#f44336';
+    }
+
+    return fallbackColor;
+  },
+
+  getPlanetResources(planet) {
+    if (
+      window.TerritorySystem &&
+      typeof TerritorySystem.getPlanetResources === 'function'
+    ) {
+      return (
+        TerritorySystem.getPlanetResources(planet.id) ||
+        planet.resources ||
+        {}
+      );
+    }
+
+    return planet.resources || {};
+  },
+
+  getPlanetRoutes(planet) {
+    if (
+      window.TerritorySystem &&
+      typeof TerritorySystem.getPlanetRoutes === 'function'
+    ) {
+      return TerritorySystem.getPlanetRoutes(planet.id) || [];
+    }
+
+    return planet.routes || [];
+  },
+
+  getPlanetType(planet) {
+    if (
+      window.TerritorySystem &&
+      typeof TerritorySystem.getPlanetType === 'function'
+    ) {
+      return TerritorySystem.getPlanetType(planet.id) || planet.type;
+    }
+
+    return planet.type || 'desconocido';
+  },
+
+  formatPlanetName(planetId) {
+    const planet = this.getPlanetById(planetId);
+
+    if (planet) {
+      return planet.name;
+    }
+
+    return planetId
+      .split('-')
+      .map(part => {
+        return part.charAt(0).toUpperCase() + part.slice(1);
+      })
+      .join(' ');
+  },
+
+  formatPlanetType(type) {
+    const labels = {
+      capital: 'Capital',
+      industrial: 'Industrial',
+      agricultural: 'Agrícola',
+      desert: 'Desierto',
+      ocean: 'Oceánico',
+      barren: 'Yermo',
+      volcanic: 'Volcánico',
+      forest: 'Boscoso',
+      ice: 'Helado',
+      gas: 'Gigante gaseoso',
+      tropical: 'Tropical',
+      holy: 'Santuario',
+      jungle: 'Selva',
+      salt: 'Salino',
+      storm: 'Tormentoso',
+      mining: 'Minero'
+    };
+
+    return labels[type] || this.formatPlanetName(type);
+  },
+
+  getPhaseInfo() {
+    const state =
+      typeof GameState !== 'undefined'
+        ? GameState.getState()
+        : {};
+
+    const phaseId = state.turnPhase || 'command';
+
+    const phaseLabels = {
+      command: 'Mando',
+      construction: 'Construir',
+      research: 'Investigar',
+      military: 'Militar'
+    };
+
+    return {
+      id: phaseId,
+      label: phaseLabels[phaseId] || 'Mando',
+      commandPoints: Number.isFinite(state.commandPoints)
+        ? state.commandPoints
+        : 3
+    };
   },
 
   bindInteractions() {
     this.interactionsBound = true;
     this.canvas.style.touchAction = 'none';
 
-    this.canvas.addEventListener('pointerdown', event => this.pointerDown(event));
-    this.canvas.addEventListener('pointermove', event => this.pointerMove(event));
-    this.canvas.addEventListener('pointerup', event => this.pointerUp(event));
-    this.canvas.addEventListener('pointercancel', event => this.pointerUp(event));
-    this.canvas.addEventListener('wheel', event => this.wheel(event), { passive: false });
+    this.canvas.addEventListener(
+      'pointerdown',
+      event => this.pointerDown(event)
+    );
+
+    this.canvas.addEventListener(
+      'pointermove',
+      event => this.pointerMove(event)
+    );
+
+    this.canvas.addEventListener(
+      'pointerup',
+      event => this.pointerUp(event)
+    );
+
+    this.canvas.addEventListener(
+      'pointercancel',
+      event => this.pointerUp(event)
+    );
+
+    this.canvas.addEventListener(
+      'wheel',
+      event => this.wheel(event),
+      { passive: false }
+    );
   },
 
   updateViewport() {
     const rect = this.canvas.getBoundingClientRect();
 
-    if (!rect.width || !rect.height) return false;
+    if (!rect.width || !rect.height) {
+      return false;
+    }
 
     this.viewport = {
       width: rect.width,
       height: rect.height,
-      dpr: this.canvas.width / rect.width || window.devicePixelRatio || 1
+      dpr:
+        this.canvas.width / rect.width ||
+        window.devicePixelRatio ||
+        1
     };
 
     return true;
   },
 
   fitToViewport() {
-    if (!this.canvas || !this.ctx || !this.updateViewport()) return;
+    if (
+      !this.canvas ||
+      !this.ctx ||
+      !this.updateViewport()
+    ) {
+      return;
+    }
 
     const planets = this.planets();
 
-    if (!planets.length) return;
+    if (!planets.length) {
+      return;
+    }
 
     const xs = planets.map(planet => planet.position.x);
     const ys = planets.map(planet => planet.position.y);
@@ -73,16 +315,22 @@ const MapSystem = {
     const padding = 54;
 
     const zoom = Math.min(
-      (this.viewport.width - padding * 2) / Math.max(1, maxX - minX),
-      (this.viewport.height - padding * 2) / Math.max(1, maxY - minY),
+      (this.viewport.width - padding * 2) /
+        Math.max(1, maxX - minX),
+      (this.viewport.height - padding * 2) /
+        Math.max(1, maxY - minY),
       1
     );
 
     this.camera.zoom = Math.max(0.28, zoom);
+
     this.camera.x =
-      this.viewport.width / 2 - ((minX + maxX) / 2) * this.camera.zoom;
+      this.viewport.width / 2 -
+      ((minX + maxX) / 2) * this.camera.zoom;
+
     this.camera.y =
-      this.viewport.height / 2 - ((minY + maxY) / 2) * this.camera.zoom;
+      this.viewport.height / 2 -
+      ((minY + maxY) / 2) * this.camera.zoom;
 
     this.render();
   },
@@ -107,15 +355,26 @@ const MapSystem = {
 
   pointerDown(event) {
     this.canvas.setPointerCapture(event.pointerId);
-    this.pointers.set(event.pointerId, this.clientPoint(event.clientX, event.clientY));
+
+    this.pointers.set(
+      event.pointerId,
+      this.clientPoint(event.clientX, event.clientY)
+    );
+
     this.dragging = false;
   },
 
   pointerMove(event) {
-    if (!this.pointers.has(event.pointerId)) return;
+    if (!this.pointers.has(event.pointerId)) {
+      return;
+    }
 
     const previous = this.pointers.get(event.pointerId);
-    const current = this.clientPoint(event.clientX, event.clientY);
+
+    const current = this.clientPoint(
+      event.clientX,
+      event.clientY
+    );
 
     this.pointers.set(event.pointerId, current);
 
@@ -128,18 +387,37 @@ const MapSystem = {
       if (dx || dy) {
         this.camera.x += dx;
         this.camera.y += dy;
-        this.dragging = this.dragging || Math.hypot(dx, dy) > 2;
+
+        this.dragging =
+          this.dragging ||
+          Math.hypot(dx, dy) > 2;
+
         this.render();
       }
-    } else if (points.length === 2) {
+
+      return;
+    }
+
+    if (points.length === 2) {
       const other = points.find(point => point !== current);
+
       const oldDistance =
-        Math.hypot(previous.x - other.x, previous.y - other.y) || 1;
+        Math.hypot(
+          previous.x - other.x,
+          previous.y - other.y
+        ) || 1;
+
       const newDistance =
-        Math.hypot(current.x - other.x, current.y - other.y) || 1;
+        Math.hypot(
+          current.x - other.x,
+          current.y - other.y
+        ) || 1;
 
       this.zoomAt(
-        { x: (current.x + other.x) / 2, y: (current.y + other.y) / 2 },
+        {
+          x: (current.x + other.x) / 2,
+          y: (current.y + other.y) / 2
+        },
         newDistance / oldDistance
       );
 
@@ -148,25 +426,30 @@ const MapSystem = {
   },
 
   pointerUp(event) {
-    if (!this.pointers.has(event.pointerId)) return;
+    if (!this.pointers.has(event.pointerId)) {
+      return;
+    }
 
     if (!this.dragging && this.pointers.size === 1) {
-      const point = this.worldPoint(event.clientX, event.clientY);
+      const point = this.worldPoint(
+        event.clientX,
+        event.clientY
+      );
 
-      const clickedPlanet = this.planets().find(
-        planet =>
-          Math.hypot(
-            point.x - planet.position.x,
-            point.y - planet.position.y
-          ) <= 22
-      ) || null;
+      const clickedPlanet =
+        this.planets().find(planet => {
+          return (
+            Math.hypot(
+              point.x - planet.position.x,
+              point.y - planet.position.y
+            ) <= 22
+          );
+        }) || null;
 
-      if (clickedPlanet && this.selectedPlanet?.id === clickedPlanet.id) {
-        this.openCaptureMenu(clickedPlanet);
-      } else {
-        this.selectedPlanet = clickedPlanet;
-        this.render();
-      }
+      // Un toque selecciona o deselecciona.
+      // Ya no existe captura automática por doble toque.
+      this.selectedPlanet = clickedPlanet;
+      this.render();
     }
 
     this.pointers.delete(event.pointerId);
@@ -178,6 +461,7 @@ const MapSystem = {
 
   wheel(event) {
     event.preventDefault();
+
     this.zoomAt(
       this.clientPoint(event.clientX, event.clientY),
       event.deltaY < 0 ? 1.12 : 0.88
@@ -185,71 +469,45 @@ const MapSystem = {
   },
 
   zoomAt(point, factor) {
-    const worldX = (point.x - this.camera.x) / this.camera.zoom;
-    const worldY = (point.y - this.camera.y) / this.camera.zoom;
+    const worldX =
+      (point.x - this.camera.x) / this.camera.zoom;
 
-    this.camera.zoom = Math.max(0.28, Math.min(3, this.camera.zoom * factor));
-    this.camera.x = point.x - worldX * this.camera.zoom;
-    this.camera.y = point.y - worldY * this.camera.zoom;
+    const worldY =
+      (point.y - this.camera.y) / this.camera.zoom;
 
-    this.render();
-  },
+    this.camera.zoom = Math.max(
+      0.28,
+      Math.min(3, this.camera.zoom * factor)
+    );
 
-  openCaptureMenu(planet) {
-    if (typeof GameState === 'undefined') return;
+    this.camera.x =
+      point.x - worldX * this.camera.zoom;
 
-    // Si TerritorySystem no está disponible, usa lógica básica.
-    let status = 'neutral';
-    let ownerName = 'Desconocido';
-
-    if (window.TerritorySystem) {
-      status = TerritorySystem.getPlanetStatus(planet.id);
-      ownerName = TerritorySystem.getFactionName(planet.owner) || 'Desconocido';
-    } else {
-      const controlled = GameState.getState().controlledPlanets;
-      if (controlled.includes(planet.id)) {
-        status = 'player';
-        ownerName = 'Tú';
-      } else {
-        ownerName = galaxyMap.factions[planet.owner]?.name || 'Desconocido';
-      }
-    }
-
-    const message = status === 'player'
-      ? `${planet.name} ya está bajo tu control.\n\nDueño actual: ${ownerName}`
-      : `¿Capturar ${planet.name}?\n\nDueño actual: ${ownerName}`;
-
-    if (status === 'player') {
-      alert(message);
-      return;
-    }
-
-    const confirmed = confirm(message);
-
-    if (!confirmed) return;
-
-    GameState.addControlledPlanet(planet.id);
-
-    if (galaxyMap.factions.player) {
-      planet.owner = 'player';
-    }
-
-    console.log(`Planeta capturado: ${planet.name} (${planet.id})`);
+    this.camera.y =
+      point.y - worldY * this.camera.zoom;
 
     this.render();
   },
 
   render() {
-    if (!this.ctx || !this.canvas || !this.updateViewport()) return;
+    if (
+      !this.ctx ||
+      !this.canvas ||
+      !this.updateViewport()
+    ) {
+      return;
+    }
 
     const ctx = this.ctx;
     const { width, height, dpr } = this.viewport;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     ctx.fillStyle = '#000011';
     ctx.fillRect(0, 0, width, height);
 
     ctx.save();
+
     ctx.translate(this.camera.x, this.camera.y);
     ctx.scale(this.camera.zoom, this.camera.zoom);
 
@@ -269,19 +527,34 @@ const MapSystem = {
 
     for (const planet of planets) {
       for (const targetId of planet.routes || []) {
-        const key = [planet.id, targetId].sort().join('-');
+        const key = [planet.id, targetId]
+          .sort()
+          .join('-');
 
-        if (seen.has(key)) continue;
+        if (seen.has(key)) {
+          continue;
+        }
 
         seen.add(key);
 
-        const target = planets.find(candidate => candidate.id === targetId);
+        const target = this.getPlanetById(targetId);
 
-        if (!target) continue;
+        if (!target) {
+          continue;
+        }
 
         ctx.beginPath();
-        ctx.moveTo(planet.position.x, planet.position.y);
-        ctx.lineTo(target.position.x, target.position.y);
+
+        ctx.moveTo(
+          planet.position.x,
+          planet.position.y
+        );
+
+        ctx.lineTo(
+          target.position.x,
+          target.position.y
+        );
+
         ctx.strokeStyle = '#333355';
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -290,42 +563,38 @@ const MapSystem = {
   },
 
   drawPlanets(ctx) {
-    const planets = this.planets();
+    const playerCapital = this.getPlayerCapital();
 
-    // Si TerritorySystem no está disponible, usa lógica básica.
-    const useTerritory = window.TerritorySystem && typeof TerritorySystem.getPlayerCapital === 'function';
+    for (const planet of this.planets()) {
+      const status = this.getTerritoryStatus(planet);
+      const faction = this.getFaction(planet);
 
-    const playerCapital = useTerritory ? TerritorySystem.getPlayerCapital() : null;
-
-    for (const planet of planets) {
-      let status = 'neutral';
-      let faction = galaxyMap.factions[planet.owner];
-
-      if (useTerritory) {
-        status = TerritorySystem.getPlanetStatus(planet.id);
-      } else {
-        const controlled = typeof GameState !== 'undefined' ? GameState.getState().controlledPlanets : [];
-        if (controlled.includes(planet.id)) {
-          status = 'player';
-        }
-      }
+      const color = this.getStatusColor(
+        status,
+        faction?.color || '#666666'
+      );
 
       ctx.beginPath();
-      ctx.arc(planet.position.x, planet.position.y, 15, 0, Math.PI * 2);
 
-      if (status === 'player') {
-        ctx.fillStyle = '#4caf50';
-      } else if (status === 'enemy') {
-        ctx.fillStyle = '#f44336';
-      } else {
-        ctx.fillStyle = faction ? faction.color : '#666666';
-      }
+      ctx.arc(
+        planet.position.x,
+        planet.position.y,
+        15,
+        0,
+        Math.PI * 2
+      );
 
+      ctx.fillStyle = color;
       ctx.fill();
 
-      // Capital del jugador: borde dorado más grueso.
       if (planet.id === playerCapital) {
         ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 4;
+      } else if (
+        this.selectedPlanet &&
+        this.selectedPlanet.id === planet.id
+      ) {
+        ctx.strokeStyle = '#55d9ff';
         ctx.lineWidth = 4;
       } else {
         ctx.strokeStyle = '#ffffff';
@@ -337,65 +606,219 @@ const MapSystem = {
       ctx.fillStyle = '#ffffff';
       ctx.font = '12px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(planet.name, planet.position.x, planet.position.y - 20);
+
+      ctx.fillText(
+        planet.name,
+        planet.position.x,
+        planet.position.y - 20
+      );
     }
   },
 
   drawPlanetInfo(ctx, planet) {
-    const useTerritory = window.TerritorySystem && typeof TerritorySystem.getPlanetStatus === 'function';
+    const status = this.getTerritoryStatus(planet);
+    const faction = this.getFaction(planet);
 
-    let status = 'neutral';
-    let faction = galaxyMap.factions[planet.owner];
-    let resources = planet.resources;
-    let routes = planet.routes || [];
-    let planetType = planet.type;
+    const resources = this.getPlanetResources(planet);
 
-    if (useTerritory) {
-      status = TerritorySystem.getPlanetStatus(planet.id);
-      resources = TerritorySystem.getPlanetResources(planet.id);
-      routes = TerritorySystem.getPlanetRoutes(planet.id);
-      planetType = TerritorySystem.getPlanetType(planet.id);
-    }
+    const routes = this.getPlanetRoutes(planet)
+      .map(routeId => this.formatPlanetName(routeId))
+      .join(' · ');
 
-    const panelWidth = Math.min(280, this.viewport.width - 32);
-    const lines = [
-      `${planet.name}`,
-      `Tipo: ${planetType}`,
-      `Dueño: ${this.getOwnerLabel(status, faction)}`,
-      `Recursos:`,
-      `  Créditos: ${resources.credits}`,
-      `  Minerales: ${resources.minerals}`,
-      `  Energía: ${resources.energy}`,
-      `  Investigación: ${resources.research}`,
-      `Rutas: ${routes.join(', ') || 'Ninguna'}`
-    ];
+    const planetType = this.formatPlanetType(
+      this.getPlanetType(planet)
+    );
 
-    const panelHeight = 40 + lines.length * 22;
+    const phase = this.getPhaseInfo();
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-    ctx.fillRect(16, 16, panelWidth, panelHeight);
+    const isCapital =
+      planet.id === this.getPlayerCapital();
 
-    ctx.strokeStyle = status === 'player' ? '#4caf50' : status === 'enemy' ? '#f44336' : faction ? faction.color : '#666666';
+    const panelWidth = Math.min(
+      294,
+      this.viewport.width - 24
+    );
+
+    const panelX = 12;
+    const panelY = 12;
+
+    const panelHeight =
+      phase.id === 'command'
+        ? 286
+        : 254;
+
+    const borderColor = this.getStatusColor(
+      status,
+      faction?.color || '#666666'
+    );
+
+    ctx.fillStyle = 'rgba(3, 7, 25, 0.94)';
+    ctx.fillRect(
+      panelX,
+      panelY,
+      panelWidth,
+      panelHeight
+    );
+
+    ctx.strokeStyle = borderColor;
     ctx.lineWidth = 2;
-    ctx.strokeRect(16, 16, panelWidth, panelHeight);
+    ctx.strokeRect(
+      panelX,
+      panelY,
+      panelWidth,
+      panelHeight
+    );
 
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'left';
-    ctx.font = 'bold 16px Arial';
-    ctx.fillText(lines[0], 26, 41);
 
+    ctx.font = 'bold 17px Arial';
+    ctx.fillText(
+      planet.name.toUpperCase(),
+      panelX + 14,
+      panelY + 27
+    );
+
+    ctx.font = 'bold 11px Arial';
+    ctx.fillStyle = borderColor;
+
+    const statusText = isCapital
+      ? `★ CAPITAL · ${this.getStatusLabel(status)}`
+      : this.getStatusLabel(status);
+
+    ctx.fillText(
+      statusText,
+      panelX + 14,
+      panelY + 47
+    );
+
+    ctx.fillStyle = '#dce5ff';
     ctx.font = '12px Arial';
-    let y = 66;
-    for (let i = 1; i < lines.length; i++) {
-      ctx.fillText(lines[i], 26, y);
-      y += 22;
+
+    ctx.fillText(
+      `Dueño: ${this.getOwnerLabel(planet, status)}`,
+      panelX + 14,
+      panelY + 71
+    );
+
+    ctx.fillText(
+      `Tipo: ${planetType}`,
+      panelX + 14,
+      panelY + 91
+    );
+
+    ctx.fillStyle = '#9fb2df';
+    ctx.font = 'bold 11px Arial';
+
+    ctx.fillText(
+      'PRODUCCIÓN POR TURNO',
+      panelX + 14,
+      panelY + 116
+    );
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '12px Arial';
+
+    ctx.fillText(
+      `Créditos: ${resources.credits || 0}`,
+      panelX + 14,
+      panelY + 138
+    );
+
+    ctx.fillText(
+      `Minerales: ${resources.minerals || 0}`,
+      panelX + 146,
+      panelY + 138
+    );
+
+    ctx.fillText(
+      `Energía: ${resources.energy || 0}`,
+      panelX + 14,
+      panelY + 159
+    );
+
+    ctx.fillText(
+      `Investigación: ${resources.research || 0}`,
+      panelX + 146,
+      panelY + 159
+    );
+
+    ctx.fillStyle = '#9fb2df';
+    ctx.font = 'bold 11px Arial';
+
+    ctx.fillText(
+      'RUTAS CONECTADAS',
+      panelX + 14,
+      panelY + 184
+    );
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '12px Arial';
+
+    this.drawWrappedText(
+      ctx,
+      routes || 'Ninguna',
+      panelX + 14,
+      panelY + 204,
+      panelWidth - 28,
+      16,
+      2
+    );
+
+    ctx.fillStyle = '#9fb2df';
+    ctx.font = 'bold 11px Arial';
+
+    ctx.fillText(
+      `FASE: ${phase.label.toUpperCase()} · PM: ${phase.commandPoints}`,
+      panelX + 14,
+      panelY + 244
+    );
+
+    if (phase.id === 'command') {
+      ctx.fillStyle = '#7485b8';
+      ctx.font = '11px Arial';
+
+      const actionText =
+        status === 'player'
+          ? 'Mando: refuerzos y flotas próximamente.'
+          : 'Conquista disponible en la fase militar.';
+
+      ctx.fillText(
+        actionText,
+        panelX + 14,
+        panelY + 267
+      );
     }
   },
 
-  getOwnerLabel(status, faction) {
-    if (status === 'player') return 'Tú';
-    if (status === 'enemy') return faction ? faction.name : 'Enemigo';
-    return faction && faction.name !== 'Neutral' ? faction.name : 'Neutral';
+  drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+    const words = String(text).split(' ');
+    let line = '';
+    let lineCount = 0;
+
+    for (const word of words) {
+      const testLine = line
+        ? `${line} ${word}`
+        : word;
+
+      const width = ctx.measureText(testLine).width;
+
+      if (
+        width > maxWidth &&
+        line &&
+        lineCount < maxLines - 1
+      ) {
+        ctx.fillText(line, x, y + lineCount * lineHeight);
+        line = word;
+        lineCount += 1;
+      } else {
+        line = testLine;
+      }
+    }
+
+    if (line && lineCount < maxLines) {
+      ctx.fillText(line, x, y + lineCount * lineHeight);
+    }
   }
 };
 
