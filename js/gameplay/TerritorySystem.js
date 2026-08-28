@@ -2,8 +2,8 @@ const TerritorySystem = {
   playerFactionId: null,
 
   factions: {
-    empire: { name: 'Imperio Galactico', capital: 'lothal' },
-    rebels: { name: 'Alianza Rebelde', capital: 'hoth' },
+    empire: { name: 'Imperio Galactico', capital: 'coruscant' },
+    rebels: { name: 'Alianza Rebelde', capital: 'yavin-iv' },
     separatists: { name: 'Confederacion de Sistemas Independientes', capital: 'geonosis' },
     mandalorians: { name: 'Clanes Mandalorianos', capital: 'mandalore' }
   },
