@@ -11,6 +11,15 @@ const MapSystem = {
   interactionsBound: false,
   viewport: { width: 0, height: 0, dpr: 1 },
 
+  factionEmblems: {
+    empire: 'assets/effects/imperial-symbol.svg',
+    rebels: 'assets/effects/rebel-symbol.svg',
+    separatists: 'assets/effects/separatist-symbol.svg',
+    mandalorians: 'assets/effects/mandalorian-symbol.svg'
+  },
+
+  emblemImages: {},
+
   init(canvas) {
     const target = canvas || document.getElementById('game-canvas');
 
@@ -239,6 +248,105 @@ const MapSystem = {
     };
   },
 
+  getFactionEmblemKey(planet, status) {
+    if (status === 'player') {
+      const selectedFaction =
+        typeof GameState !== 'undefined'
+          ? GameState.getState().selectedFaction
+          : null;
+
+      const aliases = {
+        imperial: 'empire',
+        rebel: 'rebels',
+        separatist: 'separatists',
+        mandalorian: 'mandalorians'
+      };
+
+      return aliases[selectedFaction] || planet.owner;
+    }
+
+    return planet.owner;
+  },
+
+  getEmblemImage(factionId) {
+    const path = this.factionEmblems[factionId];
+
+    if (!path) {
+      return null;
+    }
+
+    if (this.emblemImages[factionId]) {
+      return this.emblemImages[factionId];
+    }
+
+    const image = new Image();
+
+    image.onload = () => {
+      this.render();
+    };
+
+    image.onerror = () => {
+      delete this.emblemImages[factionId];
+    };
+
+    image.src = path;
+
+    this.emblemImages[factionId] = image;
+
+    return image;
+  },
+
+  drawFactionEmblem(ctx, planet, status, panelX, panelY, panelWidth) {
+    const factionId = this.getFactionEmblemKey(planet, status);
+
+    if (!this.factionEmblems[factionId]) {
+      return;
+    }
+
+    const image = this.getEmblemImage(factionId);
+
+    if (!image || !image.complete || !image.naturalWidth) {
+      return;
+    }
+
+    const size = 38;
+    const marginRight = 14;
+
+    const iconX = panelX + panelWidth - size - marginRight;
+    const iconY = panelY + 13;
+
+    ctx.save();
+
+    ctx.globalAlpha = 0.95;
+
+    ctx.fillStyle = 'rgba(10, 19, 44, 0.9)';
+    ctx.fillRect(
+      iconX - 4,
+      iconY - 4,
+      size + 8,
+      size + 8
+    );
+
+    ctx.strokeStyle = '#2f80ed';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(
+      iconX - 4,
+      iconY - 4,
+      size + 8,
+      size + 8
+    );
+
+    ctx.drawImage(
+      image,
+      iconX,
+      iconY,
+      size,
+      size
+    );
+
+    ctx.restore();
+  },
+
   bindInteractions() {
     this.interactionsBound = true;
     this.canvas.style.touchAction = 'none';
@@ -446,8 +554,6 @@ const MapSystem = {
           );
         }) || null;
 
-      // Un toque selecciona o deselecciona.
-      // Ya no existe captura automática por doble toque.
       this.selectedPlanet = clickedPlanet;
       this.render();
     }
@@ -523,9 +629,8 @@ const MapSystem = {
 
   drawRoutes(ctx) {
     const seen = new Set();
-    const planets = this.planets();
 
-    for (const planet of planets) {
+    for (const planet of this.planets()) {
       for (const targetId of planet.routes || []) {
         const key = [planet.id, targetId]
           .sort()
@@ -669,6 +774,16 @@ const MapSystem = {
       panelHeight
     );
 
+    // Emblema: esquina superior derecha, sin invadir el texto.
+    this.drawFactionEmblem(
+      ctx,
+      planet,
+      status,
+      panelX,
+      panelY,
+      panelWidth
+    );
+
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'left';
 
@@ -808,7 +923,12 @@ const MapSystem = {
         line &&
         lineCount < maxLines - 1
       ) {
-        ctx.fillText(line, x, y + lineCount * lineHeight);
+        ctx.fillText(
+          line,
+          x,
+          y + lineCount * lineHeight
+        );
+
         line = word;
         lineCount += 1;
       } else {
@@ -817,7 +937,11 @@ const MapSystem = {
     }
 
     if (line && lineCount < maxLines) {
-      ctx.fillText(line, x, y + lineCount * lineHeight);
+      ctx.fillText(
+        line,
+        x,
+        y + lineCount * lineHeight
+      );
     }
   }
 };
