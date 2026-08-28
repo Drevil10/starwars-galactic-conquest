@@ -159,6 +159,41 @@ class FactionSelectionUIClass {
         });
     }
 
+    initializeTerritory(factionId) {
+        if (
+            typeof TerritorySystem === 'undefined' ||
+            typeof TerritorySystem.init !== 'function'
+        ) {
+            return;
+        }
+
+        const factionAliases = {
+            imperial: 'empire',
+            empire: 'empire',
+
+            rebel: 'rebels',
+            rebels: 'rebels',
+
+            separatist: 'separatists',
+            separatists: 'separatists',
+
+            mandalorian: 'mandalorians',
+            mandalorians: 'mandalorians'
+        };
+
+        const territoryFactionId = factionAliases[factionId];
+
+        if (!territoryFactionId) {
+            console.warn(
+                `FactionSelectionUI: La facción "${factionId}" no tiene equivalencia territorial.`
+            );
+
+            return;
+        }
+
+        TerritorySystem.init(territoryFactionId);
+    }
+
     selectFaction(factionId) {
         const result = CampaignSystem.startCampaign(factionId);
 
@@ -170,6 +205,9 @@ class FactionSelectionUIClass {
 
             return;
         }
+
+        // Comunica la facción elegida al sistema de territorios.
+        this.initializeTerritory(factionId);
 
         if (typeof this.onFactionSelected === 'function') {
             this.onFactionSelected(result);
