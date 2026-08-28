@@ -4,12 +4,23 @@
 const MapSystem = {
   canvas: null,
   ctx: null,
-  camera: { x: 0, y: 0, zoom: 1 },
+
+  camera: {
+    x: 0,
+    y: 0,
+    zoom: 1
+  },
+
   selectedPlanet: null,
   pointers: new Map(),
   dragging: false,
   interactionsBound: false,
-  viewport: { width: 0, height: 0, dpr: 1 },
+
+  viewport: {
+    width: 0,
+    height: 0,
+    dpr: 1
+  },
 
   factionEmblems: {
     empire: 'assets/effects/imperial-symbol.svg',
@@ -296,8 +307,18 @@ const MapSystem = {
     return image;
   },
 
-  drawFactionEmblem(ctx, planet, status, panelX, panelY, panelWidth) {
-    const factionId = this.getFactionEmblemKey(planet, status);
+  drawFactionEmblem(
+    ctx,
+    planet,
+    status,
+    panelX,
+    panelY,
+    panelWidth
+  ) {
+    const factionId = this.getFactionEmblemKey(
+      planet,
+      status
+    );
 
     if (!this.factionEmblems[factionId]) {
       return;
@@ -305,46 +326,78 @@ const MapSystem = {
 
     const image = this.getEmblemImage(factionId);
 
-    if (!image || !image.complete || !image.naturalWidth) {
+    if (
+      !image ||
+      !image.complete ||
+      !image.naturalWidth
+    ) {
       return;
     }
 
-    const size = 38;
-    const marginRight = 14;
+    // El emblema queda totalmente a la derecha.
+    const emblemSize = 32;
+    const rightMargin = 14;
 
-    const iconX = panelX + panelWidth - size - marginRight;
-    const iconY = panelY + 13;
+    const emblemX =
+      panelX +
+      panelWidth -
+      emblemSize -
+      rightMargin;
+
+    const emblemY = panelY + 14;
 
     ctx.save();
 
-    ctx.globalAlpha = 0.95;
+    ctx.globalAlpha = 0.96;
 
-    ctx.fillStyle = 'rgba(10, 19, 44, 0.9)';
+    ctx.fillStyle = 'rgba(7, 17, 40, 0.94)';
+
     ctx.fillRect(
-      iconX - 4,
-      iconY - 4,
-      size + 8,
-      size + 8
+      emblemX - 4,
+      emblemY - 4,
+      emblemSize + 8,
+      emblemSize + 8
     );
 
     ctx.strokeStyle = '#2f80ed';
     ctx.lineWidth = 2;
+
     ctx.strokeRect(
-      iconX - 4,
-      iconY - 4,
-      size + 8,
-      size + 8
+      emblemX - 4,
+      emblemY - 4,
+      emblemSize + 8,
+      emblemSize + 8
     );
 
     ctx.drawImage(
       image,
-      iconX,
-      iconY,
-      size,
-      size
+      emblemX,
+      emblemY,
+      emblemSize,
+      emblemSize
     );
 
     ctx.restore();
+  },
+
+  fitText(ctx, text, maxWidth) {
+    const value = String(text);
+
+    if (ctx.measureText(value).width <= maxWidth) {
+      return value;
+    }
+
+    const suffix = '…';
+    let result = value;
+
+    while (
+      result.length > 0 &&
+      ctx.measureText(`${result}${suffix}`).width > maxWidth
+    ) {
+      result = result.slice(0, -1);
+    }
+
+    return `${result}${suffix}`;
   },
 
   bindInteractions() {
@@ -555,6 +608,7 @@ const MapSystem = {
         }) || null;
 
       this.selectedPlanet = clickedPlanet;
+
       this.render();
     }
 
@@ -757,7 +811,15 @@ const MapSystem = {
       faction?.color || '#666666'
     );
 
+    const emblemSize = 32;
+
+    const titleMaxWidth =
+      panelWidth -
+      emblemSize -
+      50;
+
     ctx.fillStyle = 'rgba(3, 7, 25, 0.94)';
+
     ctx.fillRect(
       panelX,
       panelY,
@@ -767,6 +829,7 @@ const MapSystem = {
 
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = 2;
+
     ctx.strokeRect(
       panelX,
       panelY,
@@ -774,7 +837,6 @@ const MapSystem = {
       panelHeight
     );
 
-    // Emblema: esquina superior derecha, sin invadir el texto.
     this.drawFactionEmblem(
       ctx,
       planet,
@@ -784,12 +846,17 @@ const MapSystem = {
       panelWidth
     );
 
-    ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'left';
 
     ctx.font = 'bold 17px Arial';
+    ctx.fillStyle = '#ffffff';
+
     ctx.fillText(
-      planet.name.toUpperCase(),
+      this.fitText(
+        ctx,
+        planet.name.toUpperCase(),
+        titleMaxWidth
+      ),
       panelX + 14,
       panelY + 27
     );
@@ -802,7 +869,11 @@ const MapSystem = {
       : this.getStatusLabel(status);
 
     ctx.fillText(
-      statusText,
+      this.fitText(
+        ctx,
+        statusText,
+        titleMaxWidth
+      ),
       panelX + 14,
       panelY + 47
     );
@@ -908,6 +979,7 @@ const MapSystem = {
 
   drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
     const words = String(text).split(' ');
+
     let line = '';
     let lineCount = 0;
 
