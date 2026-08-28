@@ -83,3 +83,8 @@ const TerritorySystem = {
 };
 
 window.TerritorySystem = TerritorySystem;
+
+if (!window.__turnPhaseSystemRequested) {
+  window.__turnPhaseSystemRequested = true;
+  document.write('<script src="js/gameplay/TurnPhaseSystem.js"><\/script>');
+}
