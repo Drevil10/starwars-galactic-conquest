@@ -29,43 +29,7 @@ const MapSystem = {
     mandalorians: 'assets/effects/mandalorian-symbol.svg'
   },
 
-  planetEmblems: {
-    coruscant: 'assets/locations/coruscant.svg',
-    corellia: 'assets/locations/corellia.svg',
-    alderaan: 'assets/locations/alderaan.svg',
-    tatooine: 'assets/locations/tatooine.svg',
-    naboo: 'assets/locations/naboo.svg',
-    kamino: 'assets/locations/kamino.svg',
-    geonosis: 'assets/locations/geonosis.svg',
-    utapau: 'assets/locations/utapau.svg',
-    mustafar: 'assets/locations/mustafar.svg',
-    kashyyyk: 'assets/locations/kashyyyk.svg',
-    ryloth: 'assets/locations/ryloth.svg',
-    lothal: 'assets/locations/lothal.svg',
-    mandalore: 'assets/locations/mandalore.svg',
-    hoth: 'assets/locations/hoth.svg',
-    endor: 'assets/locations/endor.svg',
-    jakku: 'assets/locations/jakku.svg',
-    bespin: 'assets/locations/bespin.svg',
-    scarif: 'assets/locations/scarif.svg',
-    jedha: 'assets/locations/jedha.svg',
-    'ahch-to': 'assets/locations/ahch-to.svg',
-    crait: 'assets/locations/crait.svg',
-    exegol: 'assets/locations/exegol.svg',
-    dathomir: 'assets/locations/dathomir.svg',
-    'yavin-iv': 'assets/locations/yavin-iv.svg',
-    ilum: 'assets/locations/ilum.svg',
-    moraband: 'assets/locations/moraband.svg',
-    'yavin-prime': 'assets/locations/yavin-prime.svg',
-    kessel: 'assets/locations/kessel.svg',
-    'naboo-moon': 'assets/locations/naboo-moon.svg',
-    sullust: 'assets/locations/sullust.svg',
-    felucia: 'assets/locations/felucia.svg',
-    'ord-mantell': 'assets/locations/ord-mantell.svg'
-  },
-
   factionImages: {},
-  planetImages: {},
 
   init(canvas) {
     const target = canvas || document.getElementById('game-canvas');
@@ -240,7 +204,7 @@ const MapSystem = {
       return planet.name;
     }
 
-    return planetId
+    return String(planetId)
       .split('-')
       .map(part => {
         return part.charAt(0).toUpperCase() + part.slice(1);
@@ -348,33 +312,154 @@ const MapSystem = {
     );
   },
 
-  getPlanetImage(planetId) {
-    return this.getImage(
-      this.planetImages,
-      planetId,
-      this.planetEmblems[planetId]
-    );
-  },
-
   drawIconFrame(ctx, x, y, size, borderColor = '#2f80ed') {
-    ctx.fillStyle = 'rgba(7, 17, 40, 0.94)';
+    ctx.save();
 
-    ctx.fillRect(
-      x - 4,
-      y - 4,
-      size + 8,
-      size + 8
-    );
+    ctx.fillStyle = 'rgba(6, 16, 38, 0.96)';
+    ctx.fillRect(x, y, size, size);
 
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = 2;
+    ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
 
-    ctx.strokeRect(
-      x - 4,
-      y - 4,
-      size + 8,
-      size + 8
+    ctx.restore();
+  },
+
+  drawPlanetBadge(ctx, x, y, size, planet, status) {
+    const faction = this.getFaction(planet);
+
+    const planetColor = this.getStatusColor(
+      status,
+      faction?.color || '#6f84a8'
     );
+
+    const centerX = x + size / 2;
+    const centerY = y + size / 2;
+    const radius = Math.max(7, size * 0.27);
+
+    this.drawIconFrame(ctx, x, y, size, '#2f80ed');
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.clip();
+
+    const gradient = ctx.createRadialGradient(
+      centerX - radius * 0.35,
+      centerY - radius * 0.35,
+      radius * 0.1,
+      centerX,
+      centerY,
+      radius * 1.25
+    );
+
+    gradient.addColorStop(0, '#d6edff');
+    gradient.addColorStop(0.3, planetColor);
+    gradient.addColorStop(1, '#102446');
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, size, size);
+
+    ctx.globalAlpha = 0.38;
+    ctx.fillStyle = '#091326';
+
+    ctx.beginPath();
+    ctx.ellipse(
+      centerX + radius * 0.42,
+      centerY - radius * 0.1,
+      radius * 0.7,
+      radius * 1.2,
+      -0.22,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.ellipse(
+      centerX - radius * 0.5,
+      centerY + radius * 0.5,
+      radius * 0.5,
+      radius * 0.26,
+      0.45,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.restore();
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+
+    ctx.strokeStyle = '#d4e8ff';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#8fa5cc';
+    ctx.font = 'bold 5px Arial';
+    ctx.textAlign = 'center';
+
+    ctx.fillText(
+      this.fitText(
+        ctx,
+        planet.name.toUpperCase(),
+        size - 6
+      ),
+      centerX,
+      y + size - 5
+    );
+
+    ctx.restore();
+  },
+
+  drawFactionBadge(ctx, x, y, size, factionId) {
+    const factionImage = this.getFactionImage(factionId);
+
+    this.drawIconFrame(ctx, x, y, size, '#2f80ed');
+
+    if (
+      factionImage &&
+      factionImage.complete &&
+      factionImage.naturalWidth
+    ) {
+      const padding = 5;
+
+      ctx.save();
+      ctx.globalAlpha = 0.98;
+
+      ctx.drawImage(
+        factionImage,
+        x + padding,
+        y + padding,
+        size - padding * 2,
+        size - padding * 2
+      );
+
+      ctx.restore();
+
+      return;
+    }
+
+    ctx.save();
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.arc(
+      x + size / 2,
+      y + size / 2,
+      size * 0.22,
+      0,
+      Math.PI * 2
+    );
+    ctx.stroke();
+
+    ctx.restore();
   },
 
   drawPanelIcons(
@@ -385,8 +470,8 @@ const MapSystem = {
     panelY,
     panelWidth
   ) {
-    const iconSize = 32;
-    const gap = 10;
+    const iconSize = 36;
+    const gap = 8;
     const rightMargin = 14;
 
     const factionId = this.getFactionEmblemKey(
@@ -394,58 +479,35 @@ const MapSystem = {
       status
     );
 
-    const planetImage = this.getPlanetImage(planet.id);
-    const factionImage = this.getFactionImage(factionId);
-
     const factionX =
       panelX +
       panelWidth -
-      iconSize -
-      rightMargin;
+      rightMargin -
+      iconSize;
 
     const planetX =
       factionX -
-      iconSize -
-      gap;
+      gap -
+      iconSize;
 
-    const iconY = panelY + 14;
+    const iconY = panelY + 12;
 
-    ctx.save();
-    ctx.globalAlpha = 0.96;
+    this.drawPlanetBadge(
+      ctx,
+      planetX,
+      iconY,
+      iconSize,
+      planet,
+      status
+    );
 
-    if (
-      planetImage &&
-      planetImage.complete &&
-      planetImage.naturalWidth
-    ) {
-      this.drawIconFrame(ctx, planetX, iconY);
-
-      ctx.drawImage(
-        planetImage,
-        planetX,
-        iconY,
-        iconSize,
-        iconSize
-      );
-    }
-
-    if (
-      factionImage &&
-      factionImage.complete &&
-      factionImage.naturalWidth
-    ) {
-      this.drawIconFrame(ctx, factionX, iconY);
-
-      ctx.drawImage(
-        factionImage,
-        factionX,
-        iconY,
-        iconSize,
-        iconSize
-      );
-    }
-
-    ctx.restore();
+    this.drawFactionBadge(
+      ctx,
+      factionX,
+      iconY,
+      iconSize,
+      factionId
+    );
   },
 
   fitText(ctx, text, maxWidth) {
@@ -878,12 +940,8 @@ const MapSystem = {
       faction?.color || '#666666'
     );
 
-    // Espacio reservado para los dos iconos superiores.
-    const topIconSpace = 32 * 2 + 10 + 22;
-
-    const titleMaxWidth =
-      panelWidth -
-      topIconSpace;
+    const iconAreaWidth = 36 * 2 + 8 + 20;
+    const titleMaxWidth = panelWidth - iconAreaWidth;
 
     ctx.fillStyle = 'rgba(3, 7, 25, 0.94)';
 
@@ -904,7 +962,6 @@ const MapSystem = {
       panelHeight
     );
 
-    // Icono del planeta a la izquierda y emblema de facción a la derecha.
     this.drawPanelIcons(
       ctx,
       planet,
