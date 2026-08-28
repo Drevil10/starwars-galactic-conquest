@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Emblema de la Confederación Separatista</title>
+  <g fill="none" stroke="#f5f7ff" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="60" cy="60" r="47" stroke-width="9"/>
+    <circle cx="60" cy="60" r="18" stroke-width="8"/>
+    <path d="M60 42V17M75.6 51L97.2 38.5M75.6 69L97.2 81.5M60 78V103M44.4 69L22.8 81.5M44.4 51L22.8 38.5" stroke-width="10"/>
+  </g>
+</svg>

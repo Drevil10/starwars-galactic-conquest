@@ -102,5 +102,107 @@ window.FactionData = {
             description:
                 'Protege Yavin IV, fortalece tus rutas y libera sistemas estratégicos del control imperial.'
         }
+    },
+
+    separatist: {
+        id: 'separatist',
+        name: 'Confederación Separatista',
+        shortName: 'Separatistas',
+        capital: 'geonosis',
+        color: '#f57c00',
+
+        emblem: 'assets/effects/separatist-symbol.svg',
+        emblemAlt: 'Emblema de la Confederación Separatista',
+
+        description:
+            'Una alianza industrial que domina la producción pesada, los droides de combate y las economías de guerra.',
+
+        playstyle:
+            'Producción industrial, flotas de droides y conquista mediante superioridad numérica.',
+
+        startingResources: {
+            credits: 125,
+            minerals: 105,
+            energy: 85,
+            research: 25
+        },
+
+        startingPlanets: [
+            'geonosis',
+            'mustafar',
+            'utapau'
+        ],
+
+        startingFleets: [
+            {
+                id: 'separatist-assault-fleet',
+                name: 'Flota de Asalto Separatista',
+                location: 'geonosis',
+                owner: 'separatist',
+                ships: {
+                    lucrehulk: 1,
+                    vultureDroid: 8,
+                    transport: 1
+                }
+            }
+        ],
+
+        startingMission: {
+            id: 'separatist-forge-war',
+            title: 'Forjar la Guerra',
+            description:
+                'Asegura Geonosis y Mustafar, amplía la producción de droides y abre una ruta de expansión hacia el Borde Exterior.'
+        }
+    },
+
+    mandalorian: {
+        id: 'mandalorian',
+        name: 'Clanes Mandalorianos',
+        shortName: 'Mandalorianos',
+        capital: 'mandalore',
+        color: '#8e44ad',
+
+        emblem: 'assets/effects/mandalorian-symbol.svg',
+        emblemAlt: 'Emblema de los Clanes Mandalorianos',
+
+        description:
+            'Clanes guerreros que combinan disciplina militar, tecnología propia y una expansión basada en la fuerza.',
+
+        playstyle:
+            'Fuerza militar, movilidad de élite y control de territorios estratégicos.',
+
+        startingResources: {
+            credits: 115,
+            minerals: 95,
+            energy: 75,
+            research: 25
+        },
+
+        startingPlanets: [
+            'mandalore',
+            'ryloth',
+            'felucia'
+        ],
+
+        startingFleets: [
+            {
+                id: 'mandalorian-war-clan',
+                name: 'Clan de Guerra Mandaloriano',
+                location: 'mandalore',
+                owner: 'mandalorian',
+                ships: {
+                    mandalorianCruiser: 1,
+                    fangFighter: 6,
+                    transport: 1
+                }
+            }
+        ],
+
+        startingMission: {
+            id: 'mandalorian-honor-clans',
+            title: 'Honor de los Clanes',
+            description:
+                'Refuerza Mandalore, reúne a los clanes dispersos y asegura las rutas hacia los sistemas del Borde Medio.'
+        }
     }
 };
